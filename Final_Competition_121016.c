@@ -59,7 +59,7 @@ void moveForwardsInches(int inches)
 		motor[frontLeft] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor)*-1;
 		motor[frontRight] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor);
 	}
-	/*motor[backLeft] = -1*SIGN(wheeldegs)*15;
+	motor[backLeft] = -1*SIGN(wheeldegs)*15;
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
@@ -68,7 +68,7 @@ void moveForwardsInches(int inches)
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
-	wait1Msec(150);*/
+	wait1Msec(150);
 
 }
 // This code is for the VEX cortex platform
