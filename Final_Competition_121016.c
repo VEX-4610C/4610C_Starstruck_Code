@@ -54,10 +54,10 @@ void moveForwardsInches(int inches)
 	writeDebugStreamLine("%d", wheeldegs);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
-		motor[backLeft] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor);
-		motor[backRight] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor)*-1;
-		motor[frontLeft] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor)*-1;
-		motor[frontRight] = SIGN(wheeldegs)*((abs(nMotorEncoder[frontLeft])-abs(wheeldegs))*P_Factor);
+		motor[backLeft] = 30+ SIGN(wheeldegs)*((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor);
+		motor[backRight] = 30+ SIGN(wheeldegs)*((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1;
+		motor[frontLeft] = 30+ SIGN(wheeldegs)*((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor);
+		motor[frontRight] = 30+ SIGN(wheeldegs)*((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1;
 	}
 	motor[backLeft] = -1*SIGN(wheeldegs)*15;
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
