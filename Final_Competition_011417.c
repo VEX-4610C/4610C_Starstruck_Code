@@ -282,9 +282,8 @@ int TURN_TO_CENTRAL_CUBE = 21; // 32-12-35 right Triangle
 void programmingSkills()
 {
 	// Open Claw
-	moveStrafeInches(-DISTANCE_OPEN_CLAW_CLEARANCE);
 	clawclose();
-	moveStrafeInches(DISTANCE_OPEN_CLAW_CLEARANCE);
+	gyroturn(-TURN_NINTY);
 	//3 Stars
 	moveForwardsInches(DISTANCE_THREE_STARS);
 	clawclose();
