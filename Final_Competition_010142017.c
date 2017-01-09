@@ -316,7 +316,6 @@ void programmingSkills()
 	liftdown(LIFT_TOP);
 	// Center Cube
 	gyroturn(TURN_TO_CENTRAL_CUBE);
-	clawopen();
 	moveForwardsInches(DISTANCE_TO_CENTER_CUBE);
 	clawclose();
 	moveForwardsInches(-DISTANCE_TO_CENTER_CUBE);
