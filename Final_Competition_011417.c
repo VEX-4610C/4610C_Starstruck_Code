@@ -281,7 +281,7 @@ int TURN_TO_CENTRAL_CUBE = 21; // 32-12-35 right Triangle
 
 void programmingSkills()
 {
-	// Open Claw
+		// Open Claw
 	clawclose();
 	gyroturn(-TURN_NINTY);
 	//3 Stars
@@ -289,7 +289,7 @@ void programmingSkills()
 	clawclose();
 	moveForwardsInches(-DISTANCE_THREE_STARS);
 	moveStrafeInches(-DISTANCE_ONE_TILE);
-	gyroturn(TURN_NINTY);
+	gyroturn(-TURN_NINTY);
 	moveForwardsInches(-DISTANCE_ONE_TILE);
 	liftup(LIFT_TOP);
 	clawopen();
@@ -307,18 +307,19 @@ void programmingSkills()
 			moveForwardsInches(DISTANCE_START_TO_WALL);
 	}
 	// Row of 3 Stars
-	gyroturn(-TURN_NINTY);
-	moveForwardsInches(DISTANCE_THREE_STARS);
 	gyroturn(TURN_NINTY);
+	moveForwardsInches(DISTANCE_THREE_STARS);
+	gyroturn(-TURN_NINTY);
 	liftup(LIFT_TOP);
 	clawopen();
 	liftdown(LIFT_TOP);
 	// Center Cube
-	gyroturn(TURN_TO_CENTRAL_CUBE);
+	gyroturn(-TURN_TO_CENTRAL_CUBE);
+	clawopen();
 	moveForwardsInches(DISTANCE_TO_CENTER_CUBE);
 	clawclose();
 	moveForwardsInches(-DISTANCE_TO_CENTER_CUBE);
-	gyroturn(-TURN_TO_CENTRAL_CUBE);
+	gyroturn(TURN_TO_CENTRAL_CUBE);
 	liftup(LIFT_TOP);
 	clawopen();
 	liftdown(LIFT_TOP);
