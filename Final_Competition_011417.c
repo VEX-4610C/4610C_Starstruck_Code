@@ -21,24 +21,24 @@
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 #define SIGN(n) (n<0 ? -1 : 1)
-void gyroturn(int deg)
+void gyroturn(int deg) // Turn Function using Gyroscope
 {
-	int gyroticks = deg*10;
-	int P_Factor = 2.5;
-	SensorValue[gyro] = 0;
-	while(abs(SensorValue[gyro]) < abs(gyroticks))
+	int gyroticks = deg*10; // Ticks of Gyro
+	int P_Factor = 2.5; // P Factor for P Turn
+	SensorValue[gyro] = 0; // Reset Gyro Value
+	while(abs(SensorValue[gyro]) < abs(gyroticks)) // Wait for Gyro to Finish
 	{
 		motor[backLeft] = SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] = SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[frontLeft] = SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[frontRight] = SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 	}
-	motor[backLeft] = -1*SIGN(gyroticks)*15;
+	motor[backLeft] = -1*SIGN(gyroticks)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(gyroticks)*15;
 	motor[frontLeft] = -1*SIGN(gyroticks)*15;
 	motor[frontRight] = -1*SIGN(gyroticks)*15;
 	wait1Msec(150);
-	motor[backLeft] = 0;
+	motor[backLeft] = 0; // Turn Off Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
@@ -46,32 +46,32 @@ void gyroturn(int deg)
 
 }
 int wheeldegs;
-void moveForwardsInches(int inches)
+void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 {
-	wheeldegs = (inches/12.566)*360;
-	float P_Factor = 0.75;
-	nMotorEncoder[backLeft] = 0;
+	wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
+	float P_Factor = 0.75; // Factor for P Controller
+	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("%d", wheeldegs);
-	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
+	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
 		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
 		motor[frontLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
 		motor[frontRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 	}
-	motor[backLeft] = -1*SIGN(wheeldegs)*15;
+	motor[backLeft] = -1*SIGN(wheeldegs)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
 	wait1Msec(150);
-	motor[backLeft] = 0;
+	motor[backLeft] = 0; // Turn Off Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
 	wait1Msec(150);
 
 }
-void moveStrafeInches(int inches)
+void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 {
 	wheeldegs = (inches/12.566)*360;
 	float P_Factor = 0.75;
@@ -140,7 +140,7 @@ void pre_auton()
 /*                                                                           */
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
-void clawopen()
+void clawopen() // Open Claw Function
 {
 	motor[ClawA] = -127;
 	motor[ClawB] = -127;
@@ -148,7 +148,7 @@ void clawopen()
 	motor[ClawA] = 0;
 	motor[ClawB] = 0;
 }
-void clawclose()
+void clawclose() // Close Claw Function
 {
 	motor[ClawA] =127;
 	motor[ClawB] = 127;
@@ -156,60 +156,59 @@ void clawclose()
 	motor[ClawA] = 0;
 	motor[ClawB] = 0;
 }
-void encoturn(int deg)
+void encoturn(int deg) // Turn based on Encoder Values
 {
-	clawclose();
-	float wheeldegs = (deg/90)*706;
-	float P_Factor = 0.75;
+	float wheeldegs = (deg/90)*706; // Constants found using circle math
+	float P_Factor = 0.75; // Factor for P Controller
 	nMotorEncoder[backLeft] = 0;
 	writeDebugStreamLine("%d", wheeldegs);
-	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
+	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Encoder to hit value found
 	{
 		motor[backLeft] = 30+ SIGN(wheeldegs)*127;
 		motor[backRight] = 30+ SIGN(wheeldegs)*127;
 		motor[frontLeft] = 30+ SIGN(wheeldegs)*127;
 		motor[frontRight] = 30+ SIGN(wheeldegs)*127;
 	}
-	motor[backLeft] = -1*SIGN(wheeldegs)*15;
+	motor[backLeft] = -1*SIGN(wheeldegs)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
 	wait1Msec(150);
-	motor[backLeft] = 0;
+	motor[backLeft] = 0; // Stop Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
 	wait1Msec(150);
 
 }
-void liftup(int degs)
+void liftup(int degs) // Lift Up using encoders
 {
-	float goal = (degs/360)*627.2 +  nMotorEncoder[catapultRightB];
-	int true_goal = (int) goal;
+	float goal = (degs/360)*627.2 +  nMotorEncoder[catapultRightB]; // find goal
+	int true_goal = (int) goal; // need to cast to int because can't compare int and float
 	while(abs(nMotorEncoder[catapultRightB]) < abs(true_goal))
 	{
-			motor[catapultLeftA]  = 127;
-			motor[catapultRightA] = 127;
-			motor[catapultLeftB]  = 127;
-			motor[catapultRightB] = 127;
+		motor[catapultLeftA]  = 127;
+		motor[catapultRightA] = 127;
+		motor[catapultLeftB]  = 127;
+		motor[catapultRightB] = 127;
 	}
-	motor[catapultLeftA]  = 15;
+	motor[catapultLeftA]  = 15; // Hold Power
 	motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = 15;
 	motor[catapultRightB] = 15;
 	return;
 }
 int true_goal_b;
-void liftdown(int degs)
+void liftdown(int degs) // Lift Down using encoders (Look at above function for additional comments)
 {
 	float goal = nMotorEncoder[catapultRightB] - (degs/360)*627.2;
 	true_goal_b = (int) goal;
 	while(abs(nMotorEncoder[catapultRightB]) > abs(true_goal_b))
 	{
-			motor[catapultLeftA]  = -127;
-			motor[catapultRightA] = -127;
-			motor[catapultLeftB]  = -127;
-			motor[catapultRightB] = -127;
+		motor[catapultLeftA]  = -127;
+		motor[catapultRightA] = -127;
+		motor[catapultLeftB]  = -127;
+		motor[catapultRightB] = -127;
 	}
 	motor[catapultLeftA]  = 15;
 	motor[catapultRightA] = 15;
@@ -219,30 +218,30 @@ void liftdown(int degs)
 }
 int liftgoal = 0;
 int liftdone = 1;
-task liftPosition
+task liftPosition // Task to Control Lift Position simultaneously with other subsystems
 {
-	int oldliftposition = 0;
+	int oldliftposition = 0; // Start Lift Positio
 	while(1)
 	{
-		if(oldliftposition != liftgoal)
+		if(oldliftposition != liftgoal) 
 		{
 			liftdone = 0;
 			if(oldliftposition > liftgoal)
 			{
-				liftdown(oldliftposition - liftgoal);
+				liftdown(oldliftposition - liftgoal); // If Goal is lower than current, lower lift.
 			}
 			else
 			{
-				liftup(liftgoal - oldliftposition);
+				liftup(liftgoal - oldliftposition);// If Goal is higher than current, raise lift.
 			}
-			oldliftposition = nMotorEncoder[catapultRightB];
+			oldliftposition = liftgoal;
 			liftdone = 1;
 		}
 	}
 }
 int clawgoal = 0;
 int clawdone = 1;
-task clawPosition
+task clawPosition // Task to Control Claw Position simultaneously with other subsystems
 {
 	int oldclawposition = 0;
 	while(1)
@@ -280,9 +279,9 @@ int DISTANCE_TO_CENTER_CUBE = 35; //32-12-35 right Triangle
 int TURN_NINTY = 90;
 int TURN_TO_CENTRAL_CUBE = 21; // 32-12-35 right Triangle
 
-void programmingSkills()
+void programmingSkills() // Possible Programming Skills, NOT TESTED YET
 {
-		// Open Claw
+	// Open Claw
 	clawclose();
 	gyroturn(-TURN_NINTY);
 	//3 Stars
@@ -331,25 +330,26 @@ void programmingSkills()
 	liftup(LIFT_TOP);
 	clawopen();
 }
-void auto_left_tile()
+void auto_left_tile() // Cube Auto for Left Tile
 {
 	clawclose();
-	gyroturn(45);
+	gyroturn(45); // Place into Position
 	moveForwardsInches(51);
 	clawclose();
-	clawclose();
+	clawclose(); // Capture Cube
 	motor[clawA] = 70;
-	motor[clawB] = 70;
+	motor[clawB] = 70; // Pinch Claw
 	gyroturn(115);
-	liftup(300);
-	moveStrafeInches(-42);
+	liftup(300); // Raise Lift to not drag cube on ground
+	moveStrafeInches(-42); // Move to side to score cube
 	moveForwardsInches(-36);
-	liftup(LIFT_TOP);
+	liftup(LIFT_TOP); // Lift to Top
 	clawopen();
-	clawclose();
-	liftdown(LIFT_TOP);
+	clawclose(); // Open and Close Claw
+	liftdown(LIFT_TOP); // Lower lift
+	liftdown(LIFT_TOP); // Lower lift (For some reason needs to be done twise)
 }
-void auto_right_tile()
+void auto_right_tile() // Cube Auto for Right Tile -- Same Comments as Above
 {
 	clawclose();
 	gyroturn(-45);
@@ -366,30 +366,31 @@ void auto_right_tile()
 	clawopen();
 	clawclose();
 	liftdown(LIFT_TOP);
-}
-void auto_star_left()
-{
-		moveForwardsInches(-40);
-	moveStrafeInches(-12);
-
-	clawclose();
-	liftup(LIFT_TOP);
-		moveForwardsInches(-16);
-	clawclose();
-	clawopen();
-	liftdown(LIFT_TOP);
 	liftdown(LIFT_TOP);
 }
-void auto_star_right()
+void auto_star_left() // Star Auto for Left Tile
 {
-	moveForwardsInches(-56);
+	moveForwardsInches(-40); // Move back to descore preload
+	moveStrafeInches(-24); // Strafe into position with middle cube
+	clawclose(); // Place claw completely outstreached
+	liftup(LIFT_TOP-180); // Lift
+	moveForwardsInches(-16); // Move Back to knock stars off fence
+	clawclose();
+	clawopen(); // Use claw to push off
+	liftdown(LIFT_TOP);
+	liftdown(LIFT_TOP); // Lift down
+}
+void auto_star_right() // Star Auto for Right Tile -- Same Comments as Above
+{
+	moveForwardsInches(-40);
 	moveStrafeInches(24);
+	clawclose(); 
+	liftup(LIFT_TOP-180); 
+	moveForwardsInches(-16); 
 	clawclose();
-	liftup(LIFT_TOP-180);
-	clawclose();
-	clawopen();
+	clawopen(); 
 	liftdown(LIFT_TOP);
-	liftdown(LIFT_TOP);
+	liftdown(LIFT_TOP); 
 }
 task autonomous()
 {
@@ -408,7 +409,7 @@ task autonomous()
 /*                                                                           */
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
-float changeRange(float x, float in_min, float in_max, float out_min, float out_max)
+float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -433,15 +434,19 @@ task robotDrive()
 		// XDRIVE
 		float x,y,z;
 		x = changeRange(vexRT[Ch1],-127,127,-1,1);
+		x = changeRange(vexRT[Ch1],-127,127,-1,1); // Changing the Range for Squared Inputs
 		y = changeRange(vexRT[Ch2],-127,127,-1,1);
 		z = changeRange(vexRT[Ch4],-127,127,-1,1);
 		x = x*x;
+		x = x*x; // Squared Inputs for Better Control
 		y = y*y;
 		z = z*z;
 		x = changeRange(x,-1,1,-127,127) * reverse * slow;
+		x = changeRange(x,-1,1,-127,127) * reverse * slow; // Change the Range back and add some multipliers
 		y = changeRange(y,-1,1,-127,127) * reverse * slow;
 		z = changeRange(z,-1,1,-127,127) * reverse * slow;
 		if(vexRT[Ch1] < 0)
+			if(vexRT[Ch1] < 0) // Because of Squared Drive, all motor inputs are now positive, so we must fix that
 			x = x*-1
 		if(vexRT[Ch2] < 0)
 			y = y*-1
@@ -449,6 +454,8 @@ task robotDrive()
 			z = z*-1
 		writeDebugStreamLine("%d %d %d", x, y, z);
 		motor[frontLeft]  =  -y + x + z;
+		writeDebugStreamLine("%d %d %d", x, y, z); // Debug
+		motor[frontLeft]  =  -y + x + z; // Just which way each motor needs to turn to go each direction
 		motor[frontRight] =  y + x + z;
 		motor[backLeft]   =  y - x + z;
 		motor[backRight]  =  -y - x + z;
@@ -459,17 +466,17 @@ task controlLiftGrab()
 {
 	while(1)
 	{
-		if(vexRT[Btn5D])
+		if(vexRT[Btn5D]) // Close Claw
 		{
 			motor[ClawA]=127;
 			motor[ClawB]=127;
 		}
-		else if(vexRT[Btn6D])
+		else if(vexRT[Btn6D]) // Open Claw
 		{
 			motor[ClawA]=-127;
 			motor[ClawB]=-127;
 		}
-		else
+		else // No Claw Power
 		{
 			motor[ClawA]=0;
 			motor[ClawB]=0;
@@ -477,11 +484,82 @@ task controlLiftGrab()
 		wait1Msec(25);
 	}
 }
+void usercontrolfunction()
+{
+	// Drive
+	int reverse = 1;
+	float slow = 1;
+	float x,y,z;
+	x = changeRange(vexRT[Ch1],-127,127,-1,1);
+	x = changeRange(vexRT[Ch1],-127,127,-1,1); // Changing the Range for Squared Inputs
+	y = changeRange(vexRT[Ch2],-127,127,-1,1);
+	z = changeRange(vexRT[Ch4],-127,127,-1,1);
+	x = x*x;
+	x = x*x; // Squared Inputs for Better Control
+	y = y*y;
+	z = z*z;
+	x = changeRange(x,-1,1,-127,127) * reverse * slow; // Change the Range back and add some multipliers
+	y = changeRange(y,-1,1,-127,127) * reverse * slow;
+	z = changeRange(z,-1,1,-127,127) * reverse * slow;
+	if(vexRT[Ch1] < 0)
+		if(vexRT[Ch1] < 0) // Because of Squared Drive, all motor inputs are now positive, so we must fix that
+		x = x*-1
+	if(vexRT[Ch2] < 0)
+		y = y*-1
+	if(vexRT[Ch4] < 0)
+		z = z*-1
+	writeDebugStreamLine("%d %d %d", x, y, z);
+	motor[frontLeft]  =  -y + x + z;
+	writeDebugStreamLine("%d %d %d", x, y, z); // Debug
+	motor[frontLeft]  =  -y + x + z; // Just which way each motor needs to turn to go each direction
+	motor[frontRight] =  y + x + z;
+	motor[backLeft]   =  y - x + z;
+	motor[backRight]  =  -y - x + z;
+	wait1Msec(20);
+	// Lift
+	if(vexRT[Btn5U]) // Manual Negative
+	{
+		motor[catapultLeftA]  = -127;
+		motor[catapultLeftB]  = -127;
+		motor[catapultRightA]  = -127;
+		motor[catapultRightB]  = -127;
+	}
+	else if(vexRT[Btn6U]) // Manual Posiitve
+	{
+		motor[catapultLeftA]  = 127;
+		motor[catapultRightA] = 127;
+		motor[catapultLeftB]  = 127;
+		motor[catapultRightB] = 127;
+	}
+	else
+	{
+		motor[catapultLeftA]  = 15;
+		motor[catapultRightA] = 15;
+		motor[catapultLeftB]  = 15;
+		motor[catapultRightB] = 15;
+	}
+	// Claw
+	if(vexRT[Btn5D]) // Close Claw
+	{
+		motor[ClawA]=127;
+		motor[ClawB]=127;
+	}
+	else if(vexRT[Btn6D]) // Open Claw
+	{
+		motor[ClawA]=-127;
+		motor[ClawB]=-127;
+	}
+	else // No Claw Power
+	{
+		motor[ClawA]=0;
+		motor[ClawB]=0;
+	}
+}
 task usercontrol()
 {
 	// User control code here, inside the loop
 
-	startTask(robotDrive);
+	/*startTask(robotDrive);
 	startTask(controlLiftGrab);
 	while (true)
 	{
@@ -509,5 +587,8 @@ task usercontrol()
 			motor[catapultRightB] = 15;
 		}
 		wait1Msec(25);
-	}
+	}*/ // The Tasks were bugging out causes us to lose control of drive and claw, but not of lift, which is in main task
+	while(1)
+		usercontrolfunction();
+	
 }
