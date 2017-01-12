@@ -54,10 +54,10 @@ void moveForwardsInches(int inches)
 	writeDebugStreamLine("%d", wheeldegs);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
-		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
-		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
-		motor[frontLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
-		motor[frontRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
+		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
+		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
+		motor[frontLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor))*SIGN(wheeldegs);
+		motor[frontRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 	}
 	motor[backLeft] = -1*SIGN(wheeldegs)*15;
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
@@ -186,7 +186,7 @@ void liftup(int degs)
 {
 	float goal = (degs/360)*627.2 +  nMotorEncoder[catapultRightB];
 	int true_goal = (int) goal;
-	while(nMotorEncoder[catapultRightB] < true_goal)
+	while(abs(nMotorEncoder[catapultRightB]) < abs(true_goal))
 	{
 			motor[catapultLeftA]  = 127;
 			motor[catapultRightA] = 127;
@@ -199,16 +199,17 @@ void liftup(int degs)
 	motor[catapultRightB] = 15;
 	return;
 }
+int true_goal_b;
 void liftdown(int degs)
 {
 	float goal = nMotorEncoder[catapultRightB] - (degs/360)*627.2;
-	int true_goal = (int) goal;
-	while(nMotorEncoder[catapultRightB] > true_goal)
+	true_goal_b = (int) goal;
+	while(abs(nMotorEncoder[catapultRightB]) > abs(true_goal_b))
 	{
-			motor[catapultLeftA]  = 127;
-			motor[catapultRightA] = 127;
-			motor[catapultLeftB]  = 127;
-			motor[catapultRightB] = 127;
+			motor[catapultLeftA]  = -127;
+			motor[catapultRightA] = -127;
+			motor[catapultLeftB]  = -127;
+			motor[catapultRightB] = -127;
 	}
 	motor[catapultLeftA]  = 15;
 	motor[catapultRightA] = 15;
@@ -263,7 +264,7 @@ task clawPosition
 	}
 }
 //PRESETS
-int LIFT_TOP = 0;
+int LIFT_TOP = 928;
 int LIFT_FLOOR = 0;
 int LIFT_PERIMETER = 0;
 
@@ -333,27 +334,69 @@ void programmingSkills()
 void auto_left_tile()
 {
 	clawclose();
-	moveForwardsInches(51)
-	gyroturn(135);
-	moveForwardsInches(-18);
+	gyroturn(45);
+	moveForwardsInches(51);
+	clawclose();
+	clawclose();
+	motor[clawA] = 70;
+	motor[clawB] = 70;
+	gyroturn(115);
+	liftup(300);
+	moveStrafeInches(-42);
+	moveForwardsInches(-36);
 	liftup(LIFT_TOP);
 	clawopen();
+	clawclose();
+	liftdown(LIFT_TOP);
 }
 void auto_right_tile()
 {
 	clawclose();
-	moveForwardsInches(51)
-	gyroturn(-135);
-	moveForwardsInches(-18);
+	gyroturn(-45);
+	moveForwardsInches(51);
+	clawclose();
+	clawclose();
+	motor[clawA] = 70;
+	motor[clawB] = 70;
+	gyroturn(-90);
+	liftup(300);
+	moveStrafeInches(42);
+	moveForwardsInches(-36);
 	liftup(LIFT_TOP);
 	clawopen();
+	clawclose();
+	liftdown(LIFT_TOP);
+}
+void auto_star_left()
+{
+		moveForwardsInches(-40);
+	moveStrafeInches(-12);
+
+	clawclose();
+	liftup(LIFT_TOP);
+		moveForwardsInches(-16);
+	clawclose();
+	clawopen();
+	liftdown(LIFT_TOP);
+	liftdown(LIFT_TOP);
+}
+void auto_star_right()
+{
+	moveForwardsInches(-56);
+	moveStrafeInches(24);
+	clawclose();
+	liftup(LIFT_TOP-180);
+	clawclose();
+	clawopen();
+	liftdown(LIFT_TOP);
+	liftdown(LIFT_TOP);
 }
 task autonomous()
 {
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
-	auto_left_tile();
+	auto_right_tile();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -431,6 +474,7 @@ task controlLiftGrab()
 			motor[ClawA]=0;
 			motor[ClawB]=0;
 		}
+		wait1Msec(25);
 	}
 }
 task usercontrol()
@@ -464,5 +508,6 @@ task usercontrol()
 			motor[catapultLeftB]  = 15;
 			motor[catapultRightB] = 15;
 		}
+		wait1Msec(25);
 	}
 }
