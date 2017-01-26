@@ -327,6 +327,7 @@ void flingShot()
 	while(!liftdone){}
 	wait1Msec(800);
 }
+int CHANGE_LIFT_FLOOR = 100;
 void trueProgrammingSkills()
 {
 	startTask(liftPosition);
@@ -347,15 +348,19 @@ void trueProgrammingSkills()
 	flingShot();
 
 	// Preloads
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	getPreload();
 	flingShot();
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	getPreload();
 	flingShot();
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	getPreload();
 	flingShot();
 
 
 	// Get Front Row of Three
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	liftgoal = LIFT_FLOOR;
 	wait1Msec(150);
 	while(!liftdone){}
@@ -366,6 +371,7 @@ void trueProgrammingSkills()
 	flingShot();
 
 	// Get Tile Cube
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	liftgoal = LIFT_FLOOR;
 	wait1Msec(150);
 	while(!liftdone){}
@@ -375,6 +381,7 @@ void trueProgrammingSkills()
 	flingShot();
 
 	//Get Center Cube
+	LIFT_FLOOR += CHANGE_LIFT_FLOOR;
 	liftgoal = LIFT_FLOOR;
 	wait1Msec(150);
 	while(!liftdone){}
