@@ -1,6 +1,7 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    liftPot,        sensorPotentiometer)
 #pragma config(Sensor, in2,    gyro,           sensorGyro)
+#pragma config(Sensor, in3,    clawPot,        sensorPotentiometer)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -165,19 +166,6 @@ LcdAutonomousSelection()
 		wait1Msec(10);
 	}
 }
-
-void clawopen() // Open Claw Function
-{
-	motor[clawA] = -127;
-	wait1Msec(650);
-	motor[clawA] = 0;
-}
-void clawclose() // Close Claw Function
-{
-	motor[clawA] =127;
-	wait1Msec(650);
-	motor[clawA] = 0;
-}
 void liftChange(int degs) // Lift Up using encoders
 {
 	int true_goal = SensorValue[liftPot] + (degs*-1);
@@ -202,6 +190,27 @@ void liftChange(int degs) // Lift Up using encoders
 	motor[catapultLeftA]  = 15; // Hold Power
 	motor[catapultLeftB]  = 15;
 	motor[catapultRightB] = 15;
+	return;
+}
+int claw_true_goal;
+void clawChange(int degs) // Lift Up using encoders
+{
+	claw_true_goal = SensorValue[clawPot] + (degs*-1);
+	if(claw_true_goal < SensorValue[clawPot]) // Lift UP
+	{
+		while(SensorValue[clawPot] > claw_true_goal)
+		{
+			motor[ClawA] = -127;
+		}
+	}
+	else // Lift DOWN
+	{
+		while(SensorValue[clawPot] < abs(claw_true_goal))
+		{
+			motor[ClawA] = 127;
+		}
+	}
+	motor[ClawA] = 0;
 	return;
 }
 void gyroturn(int deg) // Turn Function using Gyroscope
@@ -282,7 +291,7 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 }
 int LIFT_TOP = 1800;
 int LIFT_FLOOR = 4000;
-int LIFT_PERIMETER = 3850;
+int LIFT_PERIMETER = 3350;
 int LIFT_FLING = 2800;
 
 int liftgoal = LIFT_FLOOR;
@@ -306,17 +315,54 @@ task liftPosition // Task to Control Lift Position simultaneously with other sub
 		wait1Msec(15);
 	}
 }
+int CLAW_START = 240;
+int CLAW_CLOSED = 2500;
+int CLAW_OPEN = 1700;
+
+int clawgoal = CLAW_START;
+int clawdone = 1;
+task clawPosition // Task to Control Lift Position simultaneously with other subsystems
+{
+	int oldclawposition = CLAW_START; // Start Lift Positio
+	while(1)
+	{
+		if(oldclawposition != clawgoal)
+		{
+			writeDebugStreamLine("New Goal");
+			writeDebugStreamLine("Claw Change: %d", oldclawposition - clawgoal);
+			writeDebugStreamLine("Claw Goal: %d", clawgoal);
+			writeDebugStreamLine("Claw Old Position: %d", oldclawposition);
+			clawdone = 0;
+			clawChange(oldclawposition - clawgoal); // If Goal is lower than current, lower lift.
+			oldclawposition = clawgoal;
+			clawdone = 1;
+		}
+		wait1Msec(15);
+	}
+}
+
+void clawopen() // Open Claw Function
+{
+	clawgoal = CLAW_OPEN;
+	wait1Msec(250);
+	while(!clawdone);
+}
+void clawclose() // Close Claw Function
+{
+	clawgoal = CLAW_CLOSED;
+	wait1Msec(250);
+	while(!clawdone);
+}
 
 void getPreload()
 {
 	liftgoal = LIFT_FLOOR;
-	wait1Msec(50);
+	wait1Msec(150);
 	while(!liftdone){}
-	liftChange(-250);
+	gyroturn(-15);
 	moveForwardsInches(38);
 	clawclose();
 	motor[clawA] = 70;
-	gyroturn(-15);
 	moveForwardsInches(-50);
 }
 void flingShot()
@@ -331,20 +377,25 @@ int CHANGE_LIFT_FLOOR = 100;
 void trueProgrammingSkills()
 {
 	startTask(liftPosition);
+	startTask(clawPosition);
 	moveStrafeInches(18);
 	// Row of 3 Near Wall
-	motor[clawA] =127;
-	wait1Msec(850);
-	motor[clawA] = 0;
-	moveStrafeInches(-20);
-	moveForwardsInches(42);
+	clawopen();
+	moveStrafeInches(-24);
+	moveForwardsInches(52);
 	clawclose();
 	motor[clawA] = 70;
 	moveForwardsInches(-40);
+	
+	/*moveStrafeInches(48);
+	gyroturn(70);
+	moveForwardsInches(-15);
+	flingShot();*/
+	
 	gyroturn(-90);
 	moveForwardsInches(30);
-	gyroturn(-220);
-	moveForwardsInches(-32);
+	gyroturn(-190);
+	moveForwardsInches(-60);
 	flingShot();
 
 	// Preloads
@@ -619,8 +670,8 @@ task autonomous()
 		if(OVERRIDE_AUTO_SELECTION == 5)
 		{
 			trueProgrammingSkills();
-		//startTask(liftPosition);
-		//flingShot();
+			//startTask(liftPosition);
+			//flingShot();
 		}
 	}
 }
