@@ -1,16 +1,18 @@
+#pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
+#pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
-#pragma config(Sensor, in1,    liftPot,        sensorPotentiometer)
+#pragma config(Sensor, in1,    liftPot,        sensorNone)
 #pragma config(Sensor, in2,    gyro,           sensorGyro)
 #pragma config(Sensor, in3,    clawPot,        sensorPotentiometer)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           clawB,         tmotorVex393_HBridge, openLoop, reversed)
+#pragma config(Motor,  port1,           clawB,         tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           catapultRightB, tmotorVex393_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           frontLeft,     tmotorVex393_MC29, openLoop, reversed)
+#pragma config(Motor,  port3,           frontLeft,     tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port4,           catapultLeftA, tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port5,           backLeft,      tmotorVex393_MC29, openLoop, encoderPort, I2C_1)
 #pragma config(Motor,  port6,           backRight,     tmotorVex393_MC29, openLoop, encoderPort, I2C_2)
-#pragma config(Motor,  port7,           clawA,         tmotorVex393_MC29, openLoop, reversed)
+#pragma config(Motor,  port7,           clawA,         tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port8,           catapultLeftB, tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port9,           frontRight,    tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port10,          frontLeft,     tmotorNone, openLoop)
@@ -524,6 +526,22 @@ void auto_drive_backwards()
 {
 	moveForwardsInches(-70);
 }
+void preloadSkills()
+{
+	startTask(liftPosition);
+	startTask(clawPosition);
+	moveForwardsInches(-14);
+	clawclose();
+	moveForwardsInches(-50);
+	flingShot();
+
+	getPreload();
+	flingShot();
+
+	getPreload();
+	flingShot();
+
+}
 float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -573,10 +591,10 @@ void usercontrolfunction()
 	}
 	else
 	{
-		motor[catapultLeftA]  = 15;
+		motor[catapultLeftA]  = -15;
 		//motor[catapultRightA] = 15;
-		motor[catapultLeftB]  = 15;
-		motor[catapultRightB] = 15;
+		motor[catapultLeftB]  = -15;
+		motor[catapultRightB] = -15;
 	}
 	// Claw
 
@@ -620,7 +638,7 @@ void usercontrolfunction()
 4 - Drive Backwards
 5 - Programming Skills
 */
-int OVERRIDE_AUTO = 1; // To Override: Change to 1
+int OVERRIDE_AUTO = 0; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
 void pre_auton()
 {
@@ -657,7 +675,8 @@ task autonomous()
 		}
 		if(MyAutonomous == 5)
 		{
-			trueProgrammingSkills();
+			//trueProgrammingSkills();
+			preloadSkills();
 		}
 	}
 	else
@@ -684,7 +703,8 @@ task autonomous()
 		}
 		if(OVERRIDE_AUTO_SELECTION == 5)
 		{
-			trueProgrammingSkills();
+			//trueProgrammingSkills();
+			preloadSkills();
 			//startTask(liftPosition);
 			//flingShot();
 		}
