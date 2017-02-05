@@ -1,14 +1,14 @@
 #pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
-#pragma config(Sensor, in1,    liftPot,        sensorNone)
+#pragma config(Sensor, in1,    liftPot,        sensorPotentiometer)
 #pragma config(Sensor, in2,    gyro,           sensorGyro)
 #pragma config(Sensor, in3,    clawPot,        sensorPotentiometer)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           clawB,         tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           catapultRightB, tmotorVex393_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           frontLeft,     tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port3,           frontLeft,     tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port4,           catapultLeftA, tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port5,           backLeft,      tmotorVex393_MC29, openLoop, encoderPort, I2C_1)
 #pragma config(Motor,  port6,           backRight,     tmotorVex393_MC29, openLoop, encoderPort, I2C_2)
@@ -228,8 +228,8 @@ void gyroturn(int deg) // Turn Function using Gyroscope
 	{
 		motor[backLeft] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
-		motor[frontLeft] = -1*SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
-		motor[frontRight] = -1*SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
+		motor[frontLeft] = -1 * (SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor));
+		motor[frontRight] = -1 * (SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor));
 		wait1Msec(15);
 	}
 	motor[backLeft] = -1*SIGN(gyroticks)*15; // Brake Wheels
@@ -274,7 +274,7 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 {
 	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
-	writeDebugStreamLine("%d", wheeldegs);
+	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
 		motor[backLeft] = 127 * SIGN(wheeldegs);
@@ -295,10 +295,36 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	wait1Msec(150);
 
 }
-int LIFT_TOP = 1800;
-int LIFT_FLOOR = 4000;
-int LIFT_PERIMETER = 3350;
-int LIFT_FLING = 2800;
+
+void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
+{
+	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
+	nMotorEncoder[backLeft] = 0; // Reset Encoder
+	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
+	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
+	{
+		motor[backLeft] = -1*127 * SIGN(wheeldegs);
+		motor[backRight] = 127 * SIGN(wheeldegs);
+		motor[frontLeft] = 127 * SIGN(wheeldegs);
+		motor[frontRight] = -1*127 * SIGN(wheeldegs);
+		wait1Msec(15);
+	}
+	motor[backLeft] = -1*SIGN(wheeldegs)*15; // Brake Wheels
+	motor[backRight] = -1*SIGN(wheeldegs)*15;
+	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
+	motor[frontRight] = -1*SIGN(wheeldegs)*15;
+	wait1Msec(150);
+	motor[backLeft] = 0; // Turn Off Wheels
+	motor[backRight] = 0;
+	motor[frontLeft] = 0;
+	motor[frontRight] = 0;
+	wait1Msec(150);
+
+}
+int LIFT_TOP = 1450;
+int LIFT_FLOOR = 3500;
+int LIFT_PERIMETER = 3000;
+int LIFT_FLING = 1600;
 
 int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
@@ -322,8 +348,9 @@ task liftPosition // Task to Control Lift Position simultaneously with other sub
 	}
 }
 int CLAW_START = 240;
-int CLAW_CLOSED = 2500;
-int CLAW_OPEN = 1700;
+int CLAW_CLOSED = 3100;
+int CLAW_CLOSED_CUBE = 2800;
+int CLAW_OPEN = 800;
 
 int clawgoal = CLAW_START;
 int clawdone = 1;
@@ -356,22 +383,33 @@ void clawopen() // Open Claw Function
 void clawclose() // Close Claw Function
 {
 	clawgoal = CLAW_CLOSED;
+	clearTimer(T2);
+	wait1Msec(250);
+	while(clawdone == 0);
+}
+
+void clawcubeclose() // Close Claw Function
+{
+	clawgoal = CLAW_CLOSED;
 	wait1Msec(250);
 	while(!clawdone);
 }
-
 void getPreload()
 {
 	liftgoal = LIFT_FLOOR;
 	wait1Msec(150);
 	while(!liftdone){}
-	gyroturn(-15);
-	moveForwardsInches(38);
-	clawclose();
+		motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	trueMoveForwardsInches(38);
+		clawclose();
 	motor[clawA] = 70;
 	motor[clawB] = 70;
 	moveForwardsInches(-50);
 }
+
 void flingShot()
 {
 	liftgoal = LIFT_TOP;
@@ -512,7 +550,7 @@ void auto_left_tile()
 }
 void auto_star()
 {
-	startTask(liftPosition);
+	/*startTask(liftPosition);
 	moveForwardsInches(-12);
 	clawclose();
 	clawclose();
@@ -520,7 +558,85 @@ void auto_star()
 	motor[clawA] = 70;
 	motor[clawB] = 70;
 	moveForwardsInches(-60);
-	flingShot();
+	flingShot();*/
+		startTask(liftPosition);
+	startTask(clawPosition);
+	motor[catapultLeftA]  = -15;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	moveForwardsInches(-14);
+	motor[clawA] = 127;
+	motor[clawB] = 127;
+	wait1Msec(1400);
+	motor[clawA] = 80;
+	motor[clawB] = 80;
+	moveForwardsInches(-60);
+		motor[catapultLeftA]  = 127;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = 127;
+	motor[catapultRightB] = 127;
+	wait1Msec(800);
+
+		motor[clawA] = -127;
+	motor[clawB] = -127;
+	wait1Msec(550);
+			motor[catapultLeftA]  = -15;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	wait1Msec(3000);
+}
+void auto_true_left()
+{
+	startTask(liftPosition);
+	startTask(clawPosition);
+	motor[catapultLeftA]  = -15;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	CLAW_CLOSED = 2500;
+	clawopen();
+	trueMoveForwardsInches(30);
+	gyroturn(90);
+	trueMoveForwardsInches(45);
+		writeDebugStreamLine("here1");
+		writeDebugStreamLine("here2");
+	motor[clawA] = 127;
+	motor[clawB] = 127;
+	wait1Msec(850);
+	motor[clawA] = 80;
+	motor[clawB] = 80;
+	writeDebugStreamLine("here3");
+	wait1Msec(500);
+	liftgoal = LIFT_PERIMETER;
+	wait1Msec(150);
+	while(liftdone == 0){}
+	gyroturn(-165);
+		writeDebugStreamLine("here4");
+	trueMoveForwardsInches(40);
+	writeDebugStreamLine("here5");
+	gyroturn(-90);
+	writeDebugStreamLine("here6");
+	moveForwardsInches(-40);
+	LIFT_TOP = 1500;
+	motor[catapultLeftA]  = 127;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = 127;
+	motor[catapultRightB] = 127;
+	wait1Msec(800);
+
+		motor[clawA] = -127;
+	motor[clawB] = -127;
+	wait1Msec(550);
+			motor[catapultLeftA]  = -15;
+		//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	wait1Msec(3000);
+
+		motor[clawA] = -0;
+	motor[clawB] = -0;
 }
 void auto_drive_backwards()
 {
@@ -530,15 +646,32 @@ void preloadSkills()
 {
 	startTask(liftPosition);
 	startTask(clawPosition);
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
 	moveForwardsInches(-14);
 	clawclose();
+	motor[clawA] = 70;
+	motor[clawB] = 70;
 	moveForwardsInches(-50);
 	flingShot();
-
+CLAW_CLOSED = 2850;
+CLAW_OPEN = 1500;
 	getPreload();
 	flingShot();
 
 	getPreload();
+	flingShot();
+
+		liftgoal = LIFT_FLOOR;
+	wait1Msec(150);
+	while(!liftdone){}
+	gyroturn(45);
+	trueMoveForwardsInches(50);
+	clawcubeclose();
+	gyroturn(-45);
+	moveForwardsInches(-24);
 	flingShot();
 
 }
@@ -619,8 +752,8 @@ void usercontrolfunction()
 	{
 		if(claw_toggle)
 		{
-			motor[clawA] = 40;
-			motor[clawB] = 40;
+			motor[clawA] = 45;
+			motor[clawB] = 45;
 		}
 		else
 		{
@@ -639,7 +772,7 @@ void usercontrolfunction()
 5 - Programming Skills
 */
 int OVERRIDE_AUTO = 0; // To Override: Change to 1
-int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
+int OVERRIDE_AUTO_SELECTION = 1; // Auto Selection (Above)
 void pre_auton()
 {
 	bStopTasksBetweenModes = true;
@@ -659,7 +792,7 @@ task autonomous()
 		}
 		if(MyAutonomous == 1)
 		{
-			auto_left_tile();
+			auto_true_left();
 		}
 		if(MyAutonomous == 2)
 		{
@@ -687,7 +820,7 @@ task autonomous()
 		}
 		if(OVERRIDE_AUTO_SELECTION == 1)
 		{
-			auto_left_tile();
+			auto_true_left();
 		}
 		if(OVERRIDE_AUTO_SELECTION == 2)
 		{
@@ -705,8 +838,12 @@ task autonomous()
 		{
 			//trueProgrammingSkills();
 			preloadSkills();
-			//startTask(liftPosition);
-			//flingShot();
+			/*startTask(liftPosition);
+			startTask(clawPosition);
+			clawclose();
+			flingShot();
+			getPreload(0);*/
+
 		}
 	}
 }
@@ -716,6 +853,7 @@ task usercontrol()
 	while(1)
 	{
 		usercontrolfunction();
+		writeDebugStreamLine("%d", SensorValue[liftPot]);
 		wait1Msec(25);
 	}
 }
