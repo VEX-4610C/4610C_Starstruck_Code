@@ -300,7 +300,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 int LIFT_TOP = 1450;
 int LIFT_FLOOR = 3500;
 int LIFT_PERIMETER = 3000;
-int LIFT_FLING = 1600;
+int LIFT_FLING = 1450;
 
 int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
@@ -340,6 +340,22 @@ void clawclose() // Close Claw Function
 	motor[clawA] = 00;
 	motor[clawB] = 00;
 }
+void clawopentime(int time) // Open Claw Function
+{
+	motor[clawA] = -127;
+	motor[clawB] = -127;
+	wait1Msec(time);
+	motor[clawA] = 00;
+	motor[clawB] = 00;
+}
+void clawclosetime(int time) // Close Claw Function
+{
+	motor[clawA] = 127;
+	motor[clawB] = 127;
+	wait1Msec(time);
+	motor[clawA] = 00;
+	motor[clawB] = 00;
+}
 void clawhold()
 {
 	motor[clawA] = 70;
@@ -354,7 +370,7 @@ void getPreload()
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
-	trueMoveForwardsInches(45);
+	trueMoveForwardsInches(-45);
 	clawclose();
 	motor[clawA] = 70;
 	motor[clawB] = 70;
@@ -378,10 +394,10 @@ void auto_true_cube(int right)
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
 	clawclose();
-	trueMoveForwardsInches(40);
+	trueMoveForwardsInches(-40);
 	int turn = 75 * (right == 1 ? -1 : 1);
 	gyroturn(turn);
-	trueMoveForwardsInches(45);
+	trueMoveForwardsInches(-45);
 	clawclose();
 	clawhold();
 	motor[catapultLeftA]  = 127;
@@ -398,13 +414,20 @@ void auto_true_cube(int right)
 	moveForwardsInches(-40);
 	gyroturn(turn);
 	moveForwardsInches(-40);
+	LIFT_FLING = 1850;
+	flingShot();
+}
+void lifttouch()
+{
 	motor[catapultLeftA]  = 127;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = 127;
 	motor[catapultRightB] = 127;
-	wait1Msec(800);
-
-	flingShot();
+	wait1Msec(350);
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
 }
 void auto_drive_backwards()
 {
@@ -419,30 +442,66 @@ void preloadSkills()
 	motor[catapultRightB] = -15;
 	moveStrafeInches(18);
 	// Row of 3 Near Wall
-	clawclose();
-	clawclose();
+	clawclosetime(1000);
 	moveStrafeInches(-24);
-	trueMoveForwardsInches(52);
+	trueMoveForwardsInches(-52);
 	clawclose();
 	clawhold();
-	motor[clawA] = 70;
-	motor[clawB] = 70;
-	moveForwardsInches(-40);
+	moveForwardsInches(-52);
+	lifttouch();
+	moveStrafeInches(30);
+
+	gyroturn(80);
+	moveForwardsInches(-35);
+	LIFT_FLING = 1850;
+	flingShot();
+
+	getPreload();
+	flingShot();
+	LIFT_FLING += 80;
+	getPreload();
+	flingShot();
+	LIFT_FLING += 80;
+	getPreload();
+	flingShot();
+
+	liftgoal = LIFT_FLOOR;
+	wait1Msec(150);
+	while(!liftdone){}
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	gyroturn(-45);
+	trueMoveForwardsInches(-55);
+	clawclose();
+	clawhold();
+	gyroturn(45);
+	moveForwardsInches(-15);
+	
+	
+	clawclose();
 	gyroturn(90);
+	flingShot();
+	
+	getPreload();
+	flingShot();
+	
+	liftgoal = LIFT_FLOOR;
+	wait1Msec(150);
+	while(!liftdone){}
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	
+	gyroturn(45);
 	trueMoveForwardsInches(50);
-	gyroturn(-180);
+	clawclose();
+	gyroturn(-45);
 	moveForwardsInches(-25);
 	flingShot();
-
-	getPreload();
-	flingShot();
-
-	getPreload();
-	flingShot();
-
-	getPreload();
-	flingShot();
-
+	/*
 	liftgoal = LIFT_FLOOR;
 	wait1Msec(150);
 	while(!liftdone){}
@@ -457,7 +516,7 @@ void preloadSkills()
 	gyroturn(45);
 	moveForwardsInches(-24);
 	flingShot();
-
+	*/
 }
 void star_true()
 {
@@ -509,7 +568,6 @@ void usercontrolfunction()
 		y = y*-1;
 	if(vexRT[Ch4] < 0)
 		z = z*-1;
-	writeDebugStreamLine("%d %d %d", x, y, z); // Debug
 	motor[frontLeft]  =  -y - z -x; // Just which way each motor needs to turn to go each direction
 	motor[frontRight] =  y - z - x;
 	motor[backLeft]   =  y + z - x;
@@ -555,6 +613,7 @@ void usercontrolfunction()
 		claw_toggle = 0;
 		motor[clawA]=-127;
 		motor[clawB]=-127;
+		writeDebugStreamLine("%d", SensorValue[liftPot]);
 	}
 	else // No Claw Power
 	{
@@ -578,9 +637,10 @@ void usercontrolfunction()
 3 - Star LEFT
 4 - Drive Backwards
 5 - Programming Skills
+6 - Fling Shot Tester
 */
-int OVERRIDE_AUTO = 1; // To Override: Change to 1
-int OVERRIDE_AUTO_SELECTION = 2; // Auto Selection (Above)
+int OVERRIDE_AUTO = 0; // To Override: Change to 1
+int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
 void pre_auton()
 {
 	bStopTasksBetweenModes = true;
@@ -645,6 +705,11 @@ task autonomous()
 		if(OVERRIDE_AUTO_SELECTION == 5)
 		{
 			preloadSkills();
+		}
+		if(OVERRIDE_AUTO_SELECTION == 6)
+		{
+			startTask(liftPosition);
+			flingShot();
 		}
 	}
 }
