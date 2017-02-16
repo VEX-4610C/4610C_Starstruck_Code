@@ -385,7 +385,17 @@ void flingShot()
 	while(!liftdone){}
 	wait1Msec(800);
 }
-
+void liftDown()
+{
+	liftgoal = LIFT_FLOOR;
+	wait1Msec(150);
+	while(!liftdone){}
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+ 
+}
 void auto_true_cube(int right)
 {
 	startTask(liftPosition);
@@ -447,7 +457,7 @@ void preloadSkills()
 	trueMoveForwardsInches(-52);
 	clawclose();
 	clawhold();
-	moveForwardsInches(-52);
+	moveForwardsInches(-48);
 	lifttouch();
 	moveStrafeInches(30);
 
@@ -465,58 +475,27 @@ void preloadSkills()
 	getPreload();
 	flingShot();
 
-	liftgoal = LIFT_FLOOR;
-	wait1Msec(150);
-	while(!liftdone){}
-	motor[catapultLeftA]  = -15;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
-	gyroturn(-45);
-	trueMoveForwardsInches(-55);
-	clawclose();
-	clawhold();
-	gyroturn(45);
-	moveForwardsInches(-15);
-	
-	
-	clawclose();
+	liftdown();
+	trueMoveForwardsInches(-36);
 	gyroturn(90);
+	trueMoveForwardsInches(-40);
+	gyroturn(90);
+	moveForwardInches(-14);
+	LIFT_FLING += 80;
 	flingShot();
 	
-	getPreload();
-	flingShot();
-	
-	liftgoal = LIFT_FLOOR;
-	wait1Msec(150);
-	while(!liftdone){}
-	motor[catapultLeftA]  = -15;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
-	
-	gyroturn(45);
-	trueMoveForwardsInches(50);
-	clawclose();
-	gyroturn(-45);
-	moveForwardsInches(-25);
-	flingShot();
-	/*
-	liftgoal = LIFT_FLOOR;
-	wait1Msec(150);
-	while(!liftdone){}
-	motor[catapultLeftA]  = -15;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
-	gyroturn(-45);
-	trueMoveForwardsInches(50);
+	liftdown();
+	trueMoveForwardsInches(-14);
+	gyroturn(90);
+	trueMoveForwardsInches(-40);
+	gyroturn(90);
+	trueMoveForwardsInches(-18);
 	clawclose();
 	clawhold();
-	gyroturn(45);
-	moveForwardsInches(-24);
+	moveForwardsInches(-50);
+	LIFT_FLING += 80;
 	flingShot();
-	*/
+	
 }
 void star_true()
 {
