@@ -486,7 +486,7 @@ void preloadSkills()
 	
 	liftdown();
 	trueMoveForwardsInches(-14);
-	gyroturn(90);
+	gyroturn(-90);
 	trueMoveForwardsInches(-40);
 	gyroturn(90);
 	trueMoveForwardsInches(-18);
