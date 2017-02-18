@@ -145,7 +145,7 @@ LcdAutonomousSelection()
 	// diaplay default choice
 	LcdAutonomousSet(0);
 
-	while( bIfiRobotDisabled )
+	while( 1 )
 	{
 		// this function blocks until button is pressed
 		button = getLcdButtons();
@@ -608,6 +608,7 @@ void usercontrolfunction()
 		}
 	}
 }
+
 // AUTO SELECTION OVERRIDES
 /*
 0 - Cube RIGHT
@@ -620,11 +621,18 @@ void usercontrolfunction()
 */
 int OVERRIDE_AUTO = 0; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
-void pre_auton()
+task LCDControl
 {
-	bStopTasksBetweenModes = true;
 	if(OVERRIDE_AUTO == 0)
 		LcdAutonomousSelection();
+	else
+		bDisplayCompetitionStatusOnLcd = true;
+}
+void pre_auton()
+{
+	bStopTasksBetweenModes = false;
+	bDisplayCompetitionStatusOnLcd = false;
+	startTask(LCDControl);
 }
 task autonomous()
 {
