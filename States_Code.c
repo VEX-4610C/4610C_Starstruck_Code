@@ -630,12 +630,17 @@ task LCDControl
 }
 void pre_auton()
 {
+	StopTask(autonomous);
+	StopTask(usercontrol);
+	StopTask(liftPosition);
 	bStopTasksBetweenModes = false;
 	bDisplayCompetitionStatusOnLcd = false;
 	startTask(LCDControl);
 }
 task autonomous()
 {
+	StopTask(usercontrol);
+	StopTask(liftPosition);
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
@@ -702,6 +707,8 @@ task autonomous()
 }
 task usercontrol()
 {
+	StopTask(autonomous);
+	StopTask(liftPosition);
 	// User control code here, inside the loop
 	while(1)
 	{
