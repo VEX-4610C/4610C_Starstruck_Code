@@ -169,12 +169,36 @@ LcdAutonomousSelection()
 		wait1Msec(10);
 	}
 }
+int lift_completed = 0;
+int WATCHDOG_LIFT_GOAL = 0;
+task liftWatchdog
+{
+	wait1Msec(250);
+	int oldtime = 0;
+	int oldpos = SensorValue[liftPot];
+	int change_pos = 0;
+	float esti_change = 1000;
+	while(1)
+	{
+		change_pos = abs(SensorValue[liftPot] - WATCHDOG_LIFT_GOAL);
+		esti_change = change_pos / .1;
+		if(esti_change < 25)
+		{
+			lift_completed = 1;
+			break;
+		}
+		wait1Msec(100);
+	}
+}
 void liftChange(int degs) // Lift Up using encoders
 {
+	lift_completed = 0;
+	WATCHDOG_LIFT_GOAL = true_goal;
+	startTask(liftWatchdog);
 	int true_goal = SensorValue[liftPot] + (degs*-1);
 	if(true_goal < SensorValue[liftPot]) // Lift UP
 	{
-		while(SensorValue[liftPot] > true_goal)
+		while(SensorValue[liftPot] > true_goal || lift_completed)
 		{
 			motor[catapultLeftA]  = 127;
 			motor[catapultLeftB]  = 127;
@@ -183,7 +207,7 @@ void liftChange(int degs) // Lift Up using encoders
 	}
 	else // Lift DOWN
 	{
-		while(SensorValue[liftPot] < abs(true_goal))
+		while(SensorValue[liftPot] < abs(true_goal) || lift_completed)
 		{
 			motor[catapultLeftA]  = -127;
 			motor[catapultLeftB]  = -127;
@@ -193,6 +217,7 @@ void liftChange(int degs) // Lift Up using encoders
 	motor[catapultLeftA]  = 15; // Hold Power
 	motor[catapultLeftB]  = 15;
 	motor[catapultRightB] = 15;
+	stopTask(liftWatchdog);
 	return;
 }
 void gyroturn(int deg) // Turn Function using Gyroscope
@@ -394,7 +419,7 @@ void liftDown()
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
- 
+
 }
 void auto_true_cube(int right)
 {
@@ -464,7 +489,7 @@ void preloadSkills()
 	gyroturn(80);
 	moveForwardsInches(-35);
 	LIFT_FLING = 1850;
-		writeDebugStreamLine("here1");
+	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
 	getPreload();
@@ -484,7 +509,7 @@ void preloadSkills()
 	moveForwardsInches(-14);
 	LIFT_FLING += 80;
 	flingShot();
-	
+
 	liftdown();
 	trueMoveForwardsInches(-14);
 	gyroturn(-90);
@@ -496,7 +521,7 @@ void preloadSkills()
 	moveForwardsInches(-50);
 	LIFT_FLING += 80;
 	flingShot();
-	
+
 }
 void star_true()
 {
