@@ -298,7 +298,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 
 }
 int LIFT_TOP = 1450;
-int LIFT_FLOOR = 3500;
+int LIFT_FLOOR = 3100;
 int LIFT_PERIMETER = 3000;
 int LIFT_FLING = 1450;
 
@@ -452,7 +452,7 @@ void preloadSkills()
 	motor[catapultRightB] = -15;
 	moveStrafeInches(18);
 	// Row of 3 Near Wall
-	clawclosetime(1000);
+	clawclosetime(825);
 	moveStrafeInches(-24);
 	trueMoveForwardsInches(-52);
 	clawclose();
@@ -464,8 +464,9 @@ void preloadSkills()
 	gyroturn(80);
 	moveForwardsInches(-35);
 	LIFT_FLING = 1850;
+		writeDebugStreamLine("here1");
 	flingShot();
-
+	writeDebugStreamLine("here2");
 	getPreload();
 	flingShot();
 	LIFT_FLING += 80;
@@ -477,10 +478,10 @@ void preloadSkills()
 
 	liftdown();
 	trueMoveForwardsInches(-36);
-	gyroturn(90);
+	gyroturn(-90);
 	trueMoveForwardsInches(-40);
 	gyroturn(90);
-	moveForwardInches(-14);
+	moveForwardsInches(-14);
 	LIFT_FLING += 80;
 	flingShot();
 	
