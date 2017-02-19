@@ -180,13 +180,14 @@ task liftWatchdog
 	float esti_change = 1000;
 	while(1)
 	{
-		change_pos = abs(SensorValue[liftPot] - WATCHDOG_LIFT_GOAL);
+		change_pos = abs(SensorValue[liftPot] - oldpos);
 		esti_change = change_pos / .1;
 		if(esti_change < 25)
 		{
 			lift_completed = 1;
 			break;
 		}
+		oldpos = SensorValue[liftPot];
 		wait1Msec(100);
 	}
 }
