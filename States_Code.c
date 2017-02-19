@@ -507,7 +507,6 @@ void preloadSkills()
 	trueMoveForwardsInches(-40);
 	gyroturn(90);
 	moveForwardsInches(-14);
-	LIFT_FLING += 80;
 	flingShot();
 
 	liftDown();
@@ -519,7 +518,6 @@ void preloadSkills()
 	clawclose();
 	clawhold();
 	moveForwardsInches(-50);
-	LIFT_FLING += 80;
 	flingShot();
 
 }
