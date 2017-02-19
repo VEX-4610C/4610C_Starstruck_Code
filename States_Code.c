@@ -326,7 +326,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 int LIFT_TOP = 1450;
 int LIFT_FLOOR = 3350;
 // int LIFT_PERIMETER = 3000;
-int LIFT_FLING = 1450;
+int LIFT_FLING = 1850;
 
 int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
@@ -405,6 +405,7 @@ void getPreload()
 
 void flingShot()
 {
+	LIFT_FLING += 80;
 	liftgoal = LIFT_TOP;
 	while(SensorValue[liftPot] > LIFT_FLING){}
 	clawopen();
@@ -451,7 +452,6 @@ void auto_true_cube(int right)
 	moveForwardsInches(-40);
 	gyroturn(turn);
 	moveForwardsInches(-40);
-	LIFT_FLING = 1850;
 	flingShot();
 }
 void lifttouch()
@@ -491,16 +491,13 @@ void preloadSkills()
 
 	gyroturn(80);
 	moveForwardsInches(-35);
-	LIFT_FLING = 1850;
 	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
 	getPreload();
 	flingShot();
-	LIFT_FLING += 80;
 	getPreload();
 	flingShot();
-	LIFT_FLING += 80;
 	getPreload();
 	flingShot();
 
@@ -572,7 +569,6 @@ void back_star_auto(int turn)
 	int turn_deg = 80 * (turn == 0 ? 1 : -1);
 	gyroturn(turn_deg);
 	moveForwardsInches(-35);
-	LIFT_FLING = 1850;
 	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
