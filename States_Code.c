@@ -84,7 +84,7 @@ static int MyAutonomous = -1;
 /*-----------------------------------------------------------------------------*/
 
 // max number of auton choices
-#define MAX_CHOICE  5
+#define MAX_CHOICE  6
 
 void
 LcdAutonomousSet( int value, bool select = false )
@@ -116,15 +116,18 @@ LcdAutonomousSet( int value, bool select = false )
 		displayLCDString(0, 0, "Cube Left");
 		break;
 	case    2:
-		displayLCDString(0, 0, "Star Left");
+		displayLCDString(0, 0, "Preload Star");
 		break;
 	case    3:
-		displayLCDString(0, 0, "Star Right");
+		displayLCDString(0, 0, "Back Star Left");
 		break;
 	case    4:
-		displayLCDString(0, 0, "Drive Backwards");
+		displayLCDString(0, 0, "Back Star Right");
 		break;
 	case    5:
+		displayLCDString(0, 0, "Drive Backwards");
+		break;
+	case    6:
 		displayLCDString(0, 0, "Programming Skills");
 		break;
 	default:
@@ -170,11 +173,9 @@ LcdAutonomousSelection()
 	}
 }
 int lift_completed = 0;
-int WATCHDOG_LIFT_GOAL = 0;
 task liftWatchdog
 {
 	wait1Msec(250);
-	int oldtime = 0;
 	int oldpos = SensorValue[liftPot];
 	int change_pos = 0;
 	float esti_change = 1000;
@@ -193,10 +194,9 @@ task liftWatchdog
 }
 void liftChange(int degs) // Lift Up using encoders
 {
-	lift_completed = 0;
-	WATCHDOG_LIFT_GOAL = true_goal;
-	startTask(liftWatchdog);
 	int true_goal = SensorValue[liftPot] + (degs*-1);
+	lift_completed = 0;
+	startTask(liftWatchdog);
 	if(true_goal < SensorValue[liftPot]) // Lift UP
 	{
 		while(SensorValue[liftPot] > true_goal || lift_completed)
@@ -324,8 +324,8 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 
 }
 int LIFT_TOP = 1450;
-int LIFT_FLOOR = 3100;
-int LIFT_PERIMETER = 3000;
+int LIFT_FLOOR = 3350;
+// int LIFT_PERIMETER = 3000;
 int LIFT_FLING = 1450;
 
 int liftgoal = LIFT_FLOOR;
@@ -424,6 +424,7 @@ void liftDown()
 }
 void auto_true_cube(int right)
 {
+	clawclosetime(250);
 	startTask(liftPosition);
 	motor[catapultLeftA]  = -15;
 	//motor[catapultRightA] = 15;
@@ -467,6 +468,7 @@ void lifttouch()
 }
 void auto_drive_backwards()
 {
+	clawclosetime(250);
 	moveForwardsInches(-70);
 }
 void preloadSkills()
@@ -502,7 +504,7 @@ void preloadSkills()
 	getPreload();
 	flingShot();
 
-	liftdown();
+	liftDown();
 	trueMoveForwardsInches(-36);
 	gyroturn(-90);
 	trueMoveForwardsInches(-40);
@@ -511,7 +513,7 @@ void preloadSkills()
 	LIFT_FLING += 80;
 	flingShot();
 
-	liftdown();
+	liftDown();
 	trueMoveForwardsInches(-14);
 	gyroturn(-90);
 	trueMoveForwardsInches(-40);
@@ -526,6 +528,7 @@ void preloadSkills()
 }
 void star_true()
 {
+	clawclosetime(250);
 	startTask(liftPosition);
 	motor[catapultLeftA]  = -15;
 	//motor[catapultRightA] = 15;
@@ -547,6 +550,32 @@ void star_true()
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
 	clawopen();
+}
+void back_star_auto(int turn)
+{
+	clawclosetime(250);
+	startTask(liftPosition);
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	moveStrafeInches(18);
+	// Row of 3 Near Wall
+	clawclosetime(825);
+	moveStrafeInches(-24);
+	trueMoveForwardsInches(-52);
+	clawclose();
+	clawhold();
+	moveForwardsInches(-48);
+	lifttouch();
+	moveStrafeInches(30);
+	int turn_deg = 80 * (turn == 0 ? 1 : -1);
+	gyroturn(turn_deg);
+	moveForwardsInches(-35);
+	LIFT_FLING = 1850;
+	writeDebugStreamLine("here1");
+	flingShot();
+	writeDebugStreamLine("here2");
 }
 float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
@@ -640,11 +669,12 @@ void usercontrolfunction()
 /*
 0 - Cube RIGHT
 1 - Cube LEFT
-2 - Star RIGHT
-3 - Star LEFT
-4 - Drive Backwards
-5 - Programming Skills
-6 - Fling Shot Tester
+2 - Star
+3 - Back Star Left
+4 - Back Star Right
+5 - Drive Backwards
+6 - Programming Skills
+7 - Fling Shot Tester
 */
 int OVERRIDE_AUTO = 0; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
@@ -657,85 +687,58 @@ task LCDControl
 }
 void pre_auton()
 {
-	StopTask(autonomous);
-	StopTask(usercontrol);
-	StopTask(liftPosition);
+	stopTask(autonomous);
+	stopTask(usercontrol);
+	stopTask(liftPosition);
 	bStopTasksBetweenModes = false;
 	bDisplayCompetitionStatusOnLcd = false;
 	startTask(LCDControl);
 }
 task autonomous()
 {
-	StopTask(usercontrol);
-	StopTask(liftPosition);
+	stopTask(usercontrol);
+	stopTask(liftPosition);
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
-	if(OVERRIDE_AUTO == 0)
+	if((MyAutonomous == 0 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 0 && OVERRIDE_AUTO == 1)) // CUBE RIGHT
 	{
-		if(MyAutonomous == 0)
-		{
-			auto_true_cube(1);
-		}
-		if(MyAutonomous == 1)
-		{
-			auto_true_cube(0);
-		}
-		if(MyAutonomous == 2)
-		{
-			star_true();
-		}
-		if(MyAutonomous == 3)
-		{
-			star_true();
-		}
-		if(MyAutonomous == 4)
-		{
-			auto_drive_backwards();
-		}
-		if(MyAutonomous == 5)
-		{
-			//trueProgrammingSkills();
-			preloadSkills();
-		}
+		auto_true_cube(1);
 	}
-	else
+	else if((MyAutonomous == 1 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 1 && OVERRIDE_AUTO == 1)) // CUBE LEFT
 	{
-		if(OVERRIDE_AUTO_SELECTION == 0)
-		{
-			auto_true_cube(1);
-		}
-		if(OVERRIDE_AUTO_SELECTION == 1)
-		{
-			auto_true_cube(0);
-		}
-		if(OVERRIDE_AUTO_SELECTION == 2)
-		{
-			star_true();
-		}
-		if(OVERRIDE_AUTO_SELECTION == 3)
-		{
-			star_true();
-		}
-		if(OVERRIDE_AUTO_SELECTION == 4)
-		{
-			auto_drive_backwards();
-		}
-		if(OVERRIDE_AUTO_SELECTION == 5)
-		{
-			preloadSkills();
-		}
-		if(OVERRIDE_AUTO_SELECTION == 6)
-		{
+		auto_true_cube(0);
+	}
+	else if((MyAutonomous == 2 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 2 && OVERRIDE_AUTO == 1)) // PRELOAD STAR
+	{
+		star_true();
+	}
+	else if((MyAutonomous == 3 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 3 && OVERRIDE_AUTO == 1)) // BACK STAR LEFT
+	{
+		back_star_auto(0);
+	}
+	else if((MyAutonomous == 4 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 4 && OVERRIDE_AUTO == 1)) // BACK STAR RIGHT
+	{
+		back_star_auto(1);
+	}
+	else if((MyAutonomous == 5 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 5 && OVERRIDE_AUTO == 1)) // DRIVE BACKWARDS
+	{
+		auto_drive_backwards();
+	}
+	else if((MyAutonomous == 6 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 6 && OVERRIDE_AUTO == 1)) // PROGRAMMING SKILLS
+	{
+		preloadSkills();
+	}
+	else if((MyAutonomous == 7 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 7 && OVERRIDE_AUTO == 1)) // FLING SHOT TESTER
+	{
 			startTask(liftPosition);
 			flingShot();
-		}
 	}
 }
 task usercontrol()
 {
-	StopTask(autonomous);
-	StopTask(liftPosition);
+	stopTask(autonomous);
+	stopTask(liftPosition);
 	// User control code here, inside the loop
 	while(1)
 	{
