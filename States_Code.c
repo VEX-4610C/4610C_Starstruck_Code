@@ -116,18 +116,21 @@ LcdAutonomousSet( int value, bool select = false )
 		displayLCDString(0, 0, "Cube Left");
 		break;
 	case    2:
-		displayLCDString(0, 0, "Preload Star");
+		displayLCDString(0, 0, "Preload LEFT");
 		break;
 	case    3:
-		displayLCDString(0, 0, "Back Star Left");
+		displayLCDString(0, 0, "Preload RIGHT");
 		break;
 	case    4:
-		displayLCDString(0, 0, "Back Star Right");
+		displayLCDString(0, 0, "Back Star Left");
 		break;
 	case    5:
-		displayLCDString(0, 0, "Drive Backwards");
+		displayLCDString(0, 0, "Back Star Right");
 		break;
 	case    6:
+		displayLCDString(0, 0, "Drive Backwards");
+		break;
+	case    7:
 		displayLCDString(0, 0, "Programming Skills");
 		break;
 	default:
@@ -507,6 +510,7 @@ void preloadSkills()
 	trueMoveForwardsInches(-40);
 	gyroturn(90);
 	moveForwardsInches(-14);
+	LIFT_FLING += 80;
 	flingShot();
 
 	liftDown();
@@ -518,10 +522,11 @@ void preloadSkills()
 	clawclose();
 	clawhold();
 	moveForwardsInches(-50);
+	LIFT_FLING += 80;
 	flingShot();
 
 }
-void star_true()
+void star_true(int dir)
 {
 	clawclosetime(250);
 	startTask(liftPosition);
@@ -530,6 +535,8 @@ void star_true()
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
 	moveForwardsInches(-14);
+	int strafe = 10 * (dir == 0 ? 1 : -1);
+	moveStrafeInches(strafe);
 	clawclose();
 	clawclose();
 	clawclose();
@@ -663,12 +670,13 @@ void usercontrolfunction()
 /*
 0 - Cube RIGHT
 1 - Cube LEFT
-2 - Star
-3 - Back Star Left
-4 - Back Star Right
-5 - Drive Backwards
-6 - Programming Skills
-7 - Fling Shot Tester
+2 - Star LEFT
+3 - Star RIGHT
+4 - Back Star Left
+5 - Back Star Right
+6 - Drive Backwards
+7 - Programming Skills
+8 - Fling Shot Tester
 */
 int OVERRIDE_AUTO = 0; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
@@ -705,29 +713,35 @@ task autonomous()
 	}
 	else if((MyAutonomous == 2 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 2 && OVERRIDE_AUTO == 1)) // PRELOAD STAR
 	{
-		star_true();
+		star_true(0);
 	}
-	else if((MyAutonomous == 3 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 3 && OVERRIDE_AUTO == 1)) // BACK STAR LEFT
+	else if((MyAutonomous == 3 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 3 && OVERRIDE_AUTO == 1)) // PRELOAD STAR
+	{
+		star_true(1);
+	}
+	else if((MyAutonomous == 4 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 4 && OVERRIDE_AUTO == 1)) // BACK STAR LEFT
 	{
 		back_star_auto(0);
 	}
-	else if((MyAutonomous == 4 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 4 && OVERRIDE_AUTO == 1)) // BACK STAR RIGHT
+	else if((MyAutonomous == 5 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 5 && OVERRIDE_AUTO == 1)) // BACK STAR RIGHT
 	{
 		back_star_auto(1);
 	}
-	else if((MyAutonomous == 5 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 5 && OVERRIDE_AUTO == 1)) // DRIVE BACKWARDS
+	else if((MyAutonomous == 6 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 6 && OVERRIDE_AUTO == 1)) // DRIVE BACKWARDS
 	{
 		auto_drive_backwards();
 	}
-	else if((MyAutonomous == 6 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 6 && OVERRIDE_AUTO == 1)) // PROGRAMMING SKILLS
+	else if((MyAutonomous == 7 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 7 && OVERRIDE_AUTO == 1)) // PROGRAMMING SKILLS
 	{
 		preloadSkills();
 	}
-	else if((MyAutonomous == 7 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 7 && OVERRIDE_AUTO == 1)) // FLING SHOT TESTER
+	else if((MyAutonomous == 8 && OVERRIDE_AUTO == 0) || (OVERRIDE_AUTO_SELECTION == 8 && OVERRIDE_AUTO == 1)) // FLING SHOT TESTER
 	{
-			startTask(liftPosition);
-			flingShot();
+		startTask(liftPosition);
+		flingShot();
 	}
+	if(0)
+		clawopentime(0);
 }
 task usercontrol()
 {
