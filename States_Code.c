@@ -176,33 +176,36 @@ LcdAutonomousSelection()
 	}
 }
 int lift_completed = 0;
+	float esti_change = 1000;
 task liftWatchdog
 {
-	wait1Msec(250);
+	wait1Msec(1000);
 	int oldpos = SensorValue[liftPot];
 	int change_pos = 0;
-	float esti_change = 1000;
+
 	while(1)
 	{
 		change_pos = abs(SensorValue[liftPot] - oldpos);
 		esti_change = change_pos / .1;
-		if(esti_change < 25)
+		if(esti_change < 50)
 		{
 			lift_completed = 1;
+			writeDebugStreamLine("lift completed");
 			break;
 		}
 		oldpos = SensorValue[liftPot];
 		wait1Msec(100);
 	}
 }
+int true_goal;
 void liftChange(int degs) // Lift Up using encoders
 {
-	int true_goal = SensorValue[liftPot] + (degs*-1);
+	true_goal = SensorValue[liftPot] + (degs*-1);
 	lift_completed = 0;
 	startTask(liftWatchdog);
 	if(true_goal < SensorValue[liftPot]) // Lift UP
 	{
-		while(SensorValue[liftPot] > true_goal || lift_completed)
+		while(SensorValue[liftPot] > true_goal)
 		{
 			motor[catapultLeftA]  = 127;
 			motor[catapultLeftB]  = 127;
@@ -211,16 +214,17 @@ void liftChange(int degs) // Lift Up using encoders
 	}
 	else // Lift DOWN
 	{
-		while(SensorValue[liftPot] < abs(true_goal) || lift_completed)
+		while(SensorValue[liftPot] < abs(true_goal))
 		{
 			motor[catapultLeftA]  = -127;
 			motor[catapultLeftB]  = -127;
 			motor[catapultRightB] = -127;
 		}
 	}
-	motor[catapultLeftA]  = 15; // Hold Power
-	motor[catapultLeftB]  = 15;
-	motor[catapultRightB] = 15;
+	motor[catapultLeftA]  = -15; // Hold Power
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	writeDebugStreamLine("change completed");
 	stopTask(liftWatchdog);
 	return;
 }
@@ -326,8 +330,8 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	wait1Msec(150);
 
 }
-int LIFT_TOP = 1450;
-int LIFT_FLOOR = 3350;
+int LIFT_TOP = 1000;
+int LIFT_FLOOR = 3230;
 // int LIFT_PERIMETER = 3000;
 int LIFT_FLING = 1850;
 
@@ -335,6 +339,8 @@ int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
 task liftPosition // Task to Control Lift Position simultaneously with other subsystems
 {
+	LIFT_FLOOR = SensorValue[liftPot];
+	liftgoal = LIFT_FLOOR;
 	int oldliftposition = LIFT_FLOOR; // Start Lift Positio
 	while(1)
 	{
@@ -346,6 +352,7 @@ task liftPosition // Task to Control Lift Position simultaneously with other sub
 			writeDebugStreamLine("Lift Old Position: %d", oldliftposition);
 			liftdone = 0;
 			liftChange(oldliftposition - liftgoal); // If Goal is lower than current, lower lift.
+			writeDebugStreamLine("lift returned");
 			oldliftposition = liftgoal;
 			liftdone = 1;
 		}
@@ -428,24 +435,25 @@ void liftDown()
 }
 void auto_true_cube(int right)
 {
-	clawclosetime(250);
+	clawclosetime(50);
 	startTask(liftPosition);
-	motor[catapultLeftA]  = -15;
+	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
 	clawclose();
 	trueMoveForwardsInches(-40);
-	int turn = 75 * (right == 1 ? -1 : 1);
+	moveForwardsInches(-10);
+	int turn = right == 1 ? -90 : 80;
 	gyroturn(turn);
-	trueMoveForwardsInches(-45);
+	trueMoveForwardsInches(-50);
 	clawclose();
 	clawhold();
 	motor[catapultLeftA]  = 127;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = 127;
 	motor[catapultRightB] = 127;
-	wait1Msec(300);
+	wait1Msec(450);
 	motor[catapultLeftA]  = -15;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
@@ -454,7 +462,7 @@ void auto_true_cube(int right)
 
 	moveForwardsInches(-40);
 	gyroturn(turn);
-	moveForwardsInches(-40);
+	moveForwardsInches(-30);
 	flingShot();
 }
 void lifttouch()
@@ -477,13 +485,13 @@ void auto_drive_backwards()
 void preloadSkills()
 {
 	startTask(liftPosition);
-	motor[catapultLeftA]  = -15;
+	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
 	moveStrafeInches(18);
 	// Row of 3 Near Wall
-	clawclosetime(825);
+	clawclosetime(960);
 	moveStrafeInches(-24);
 	trueMoveForwardsInches(-52);
 	clawclose();
@@ -508,6 +516,8 @@ void preloadSkills()
 	trueMoveForwardsInches(-36);
 	gyroturn(-90);
 	trueMoveForwardsInches(-40);
+	clawclose();
+	clawhold();
 	gyroturn(90);
 	moveForwardsInches(-14);
 	LIFT_FLING += 80;
@@ -530,53 +540,47 @@ void star_true(int dir)
 {
 	clawclosetime(250);
 	startTask(liftPosition);
-	motor[catapultLeftA]  = -15;
+	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
 	moveForwardsInches(-14);
-	int strafe = 10 * (dir == 0 ? 1 : -1);
+	int strafe = 10 * (dir == 0 ? -1 : 1);
 	moveStrafeInches(strafe);
+	trueMoveForwardsInches(-5);
 	clawclose();
 	clawclose();
 	clawclose();
 	clawhold();
-	moveForwardsInches(-60);
-	motor[catapultLeftA]  = 127;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = 127;
-	motor[catapultRightB] = 127;
-	wait1Msec(2000);
-	motor[catapultLeftA]  = -15;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
-	clawopen();
+	moveForwardsInches(-50);
+	flingShot();
 }
 void back_star_auto(int turn)
 {
-	clawclosetime(250);
-	startTask(liftPosition);
-	motor[catapultLeftA]  = -15;
+	LIFT_FLING = 1750;
+	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -15;
-	motor[catapultRightB] = -15;
-	moveStrafeInches(18);
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
+	moveStrafeInches(18 * (turn == 0 ? 1 : -1));
 	// Row of 3 Near Wall
-	clawclosetime(825);
-	moveStrafeInches(-24);
+	clawclosetime(875);
+	moveStrafeInches(-22 * (turn == 0 ? 1 : -1));
+	wait1Msec(3000);
 	trueMoveForwardsInches(-52);
 	clawclose();
 	clawhold();
-	moveForwardsInches(-48);
+	startTask(liftPosition);
+	moveForwardsInches(-35);
 	lifttouch();
-	moveStrafeInches(30);
-	int turn_deg = 80 * (turn == 0 ? 1 : -1);
+	moveStrafeInches(30 * (turn == 0 ? 1 : -1));
+	int turn_deg = 90 * (turn == 0 ? 1 : -1);
 	gyroturn(turn_deg);
 	moveForwardsInches(-35);
 	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
+	liftdown();
 }
 float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
@@ -678,8 +682,8 @@ void usercontrolfunction()
 7 - Programming Skills
 8 - Fling Shot Tester
 */
-int OVERRIDE_AUTO = 0; // To Override: Change to 1
-int OVERRIDE_AUTO_SELECTION = 5; // Auto Selection (Above)
+int OVERRIDE_AUTO = 1; // To Override: Change to 1
+int OVERRIDE_AUTO_SELECTION = 7; // Auto Selection (Above)
 task LCDControl
 {
 	if(OVERRIDE_AUTO == 0)
@@ -692,9 +696,9 @@ void pre_auton()
 	stopTask(autonomous);
 	stopTask(usercontrol);
 	stopTask(liftPosition);
-	bStopTasksBetweenModes = false;
+	bStopTasksBetweenModes = true;
 	bDisplayCompetitionStatusOnLcd = false;
-	startTask(LCDControl);
+	//startTask(LCDControl);
 }
 task autonomous()
 {
