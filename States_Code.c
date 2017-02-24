@@ -151,7 +151,7 @@ LcdAutonomousSelection()
 	// diaplay default choice
 	LcdAutonomousSet(0);
 
-	while( 1 )
+	while( bIfiRobotDisabled )
 	{
 		// this function blocks until button is pressed
 		button = getLcdButtons();
@@ -233,24 +233,27 @@ void gyroturn(int deg) // Turn Function using Gyroscope
 	int gyroticks = deg*9; // Ticks of Gyro
 	int P_Factor = 2.5; // P Factor for P Turn
 	SensorValue[gyro] = 0; // Reset Gyro Value
+	int old_pos = 0; 
 	while(abs(SensorValue[gyro]) < abs(gyroticks)) // Wait for Gyro to Finish
 	{
+		if(abs(SensorValue[gyro] - old_pos) < 20)
+			break;
 		motor[backLeft] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[frontLeft] = -1 * (SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor));
 		motor[frontRight] = -1 * (SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor));
+		old_pos = SensorValue[gyro];
 		wait1Msec(15);
 	}
 	motor[backLeft] = -1*SIGN(gyroticks)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(gyroticks)*15;
 	motor[frontLeft] = -1*SIGN(gyroticks)*15;
 	motor[frontRight] = -1*SIGN(gyroticks)*15;
-	wait1Msec(150);
+	wait1Msec(50);
 	motor[backLeft] = 0; // Turn Off Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
-	wait1Msec(150);
 
 }
 void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
@@ -259,24 +262,27 @@ void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 	float P_Factor = 0.75;
 	nMotorEncoder[backLeft] = 0;
 	writeDebugStreamLine("%d", wheeldegs);
+	int old_pos = 0; 
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+			break;
 		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[frontLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[frontRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
+		old_pos = nMotorEncoder[backLeft];
 		wait1Msec(15);
 	}
 	motor[backLeft] = -1*SIGN(wheeldegs)*15;
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
-	wait1Msec(150);
+	wait1Msec(50);
 	motor[backLeft] = 0;
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
-	wait1Msec(150);
 
 }
 void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
@@ -284,24 +290,27 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
-	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
+	int old_pos = 0; 
+	while( (abs(nMotorEncoder[backLeft]) < abs(wheeldegs))) // Wait for Finish
 	{
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+			break;
 		motor[backLeft] = 127 * SIGN(wheeldegs);
 		motor[backRight] = -1 * 127 * SIGN(wheeldegs);
 		motor[frontLeft] = -1 * 127 * SIGN(wheeldegs);
 		motor[frontRight] = 127 * SIGN(wheeldegs);
+		old_pos = nMotorEncoder[backLeft];
 		wait1Msec(15);
 	}
 	motor[backLeft] = -1*SIGN(wheeldegs)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
-	wait1Msec(150);
+	wait1Msec(50);
 	motor[backLeft] = 0; // Turn Off Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
-	wait1Msec(150);
 
 }
 
@@ -310,24 +319,27 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
+	int old_pos = 0; 
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+			break;
 		motor[backLeft] = -1*127 * SIGN(wheeldegs);
 		motor[backRight] = 127 * SIGN(wheeldegs);
 		motor[frontLeft] = 127 * SIGN(wheeldegs);
 		motor[frontRight] = -1*127 * SIGN(wheeldegs);
+		old_pos = nMotorEncoder[backLeft];
 		wait1Msec(15);
 	}
 	motor[backLeft] = -1*SIGN(wheeldegs)*15; // Brake Wheels
 	motor[backRight] = -1*SIGN(wheeldegs)*15;
 	motor[frontLeft] = -1*SIGN(wheeldegs)*15;
 	motor[frontRight] = -1*SIGN(wheeldegs)*15;
-	wait1Msec(150);
+	wait1Msec(50);
 	motor[backLeft] = 0; // Turn Off Wheels
 	motor[backRight] = 0;
 	motor[frontLeft] = 0;
 	motor[frontRight] = 0;
-	wait1Msec(150);
 
 }
 int LIFT_TOP = 1000;
@@ -505,9 +517,17 @@ void preloadSkills()
 
 	gyroturn(110);
 	moveForwardsInches(-24);
-	writeDebugStreamLine("here1");
 	flingShot();
-	writeDebugStreamLine("here2");
+	
+	gyroturn(15);
+	gyroturn(-30);
+	gyroturn(15);
+	
+	/*
+	trueMoveForwardsInches(-6);
+	moveForwardsInches(-6);
+	*/
+	
 	getPreload();
 	flingShot();
 	getPreload();
@@ -516,12 +536,10 @@ void preloadSkills()
 	flingShot();
 
 	liftDown();
-	trueMoveForwardsInches(-30);
-	gyroturn(-90);
-	trueMoveForwardsInches(-52);
+	trueMoveForwardsInches(-12);
+	moveStrafeInches(52);
 	clawclose();
 	clawhold();
-	gyroturn(90);
 	moveForwardsInches(-14);
 	LIFT_FLING += 80;
 	flingShot();
@@ -529,11 +547,7 @@ void preloadSkills()
 	liftDown();
 	trueMoveForwardsInches(-12);
 	moveStrafeInches(50);
-	trueMoveForwardsInches(-20);
-	clawclose();
-	clawhold();
-	moveForwardsInches(-50);
-	LIFT_FLING += 80;
+	getPreload();
 	flingShot();
 
 }
@@ -581,7 +595,7 @@ void back_star_auto(int turn)
 	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
-	liftdown();
+	liftDown();
 }
 float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
@@ -685,26 +699,15 @@ void usercontrolfunction()
 */
 int OVERRIDE_AUTO = 1; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 7; // Auto Selection (Above)
-task LCDControl
-{
-	if(OVERRIDE_AUTO == 0)
-		LcdAutonomousSelection();
-	else
-		bDisplayCompetitionStatusOnLcd = true;
-}
 void pre_auton()
 {
-	stopTask(autonomous);
-	stopTask(usercontrol);
-	stopTask(liftPosition);
 	bStopTasksBetweenModes = true;
 	bDisplayCompetitionStatusOnLcd = false;
-	//startTask(LCDControl);
+	LcdAutonomousSelection();
+	startTask(LCDControl);
 }
 task autonomous()
 {
-	stopTask(usercontrol);
-	stopTask(liftPosition);
 	// ..........................................................................
 	// Insert user code here.
 	// ..........................................................................
@@ -750,8 +753,6 @@ task autonomous()
 }
 task usercontrol()
 {
-	stopTask(autonomous);
-	stopTask(liftPosition);
 	// User control code here, inside the loop
 	while(1)
 	{
