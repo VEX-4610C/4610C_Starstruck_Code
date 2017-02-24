@@ -333,7 +333,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 int LIFT_TOP = 1000;
 int LIFT_FLOOR = 3230;
 // int LIFT_PERIMETER = 3000;
-int LIFT_FLING = 1850;
+int LIFT_FLING = 2000;
 
 int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
@@ -406,16 +406,18 @@ void getPreload()
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
+	moveStrafeInches(4);
 	trueMoveForwardsInches(-45);
 	clawclose();
 	motor[clawA] = 70;
 	motor[clawB] = 70;
+
 	moveForwardsInches(-50);
 }
 
 void flingShot()
 {
-	LIFT_FLING += 80;
+	//LIFT_FLING += 80;
 	liftgoal = LIFT_TOP;
 	while(SensorValue[liftPot] > LIFT_FLING){}
 	clawopen();
@@ -484,6 +486,7 @@ void auto_drive_backwards()
 }
 void preloadSkills()
 {
+		clawclosetime(50);
 	startTask(liftPosition);
 	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
@@ -491,17 +494,17 @@ void preloadSkills()
 	motor[catapultRightB] = -35;
 	moveStrafeInches(18);
 	// Row of 3 Near Wall
-	clawclosetime(960);
+	clawclosetime(835);
 	moveStrafeInches(-24);
-	trueMoveForwardsInches(-52);
+	trueMoveForwardsInches(-46);
 	clawclose();
 	clawhold();
-	moveForwardsInches(-48);
+	moveForwardsInches(-40);
 	lifttouch();
 	moveStrafeInches(30);
 
-	gyroturn(80);
-	moveForwardsInches(-35);
+	gyroturn(110);
+	moveForwardsInches(-24);
 	writeDebugStreamLine("here1");
 	flingShot();
 	writeDebugStreamLine("here2");
@@ -513,9 +516,9 @@ void preloadSkills()
 	flingShot();
 
 	liftDown();
-	trueMoveForwardsInches(-36);
+	trueMoveForwardsInches(-30);
 	gyroturn(-90);
-	trueMoveForwardsInches(-40);
+	trueMoveForwardsInches(-52);
 	clawclose();
 	clawhold();
 	gyroturn(90);
@@ -524,11 +527,9 @@ void preloadSkills()
 	flingShot();
 
 	liftDown();
-	trueMoveForwardsInches(-14);
-	gyroturn(-90);
-	trueMoveForwardsInches(-40);
-	gyroturn(90);
-	trueMoveForwardsInches(-18);
+	trueMoveForwardsInches(-12);
+	moveStrafeInches(50);
+	trueMoveForwardsInches(-20);
 	clawclose();
 	clawhold();
 	moveForwardsInches(-50);
