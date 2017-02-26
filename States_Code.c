@@ -240,6 +240,7 @@ void gyroturn(int deg) // Turn Function using Gyroscope
 	{
 		if(abs(SensorValue[gyro] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
+		writeDebugStreamLine("Gyroturn %d", abs(SensorValue[gyro] - old_pos));
 		motor[backLeft] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[frontLeft] = -1 * (SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor));
@@ -270,6 +271,7 @@ void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 	{
 		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
+		writeDebugStreamLine("moveStrafeInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[frontLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
@@ -299,6 +301,7 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	{
 		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
+		writeDebugStreamLine("moveForwardsInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = 127 * SIGN(wheeldegs);
 		motor[backRight] = -1 * 127 * SIGN(wheeldegs);
 		motor[frontLeft] = -1 * 127 * SIGN(wheeldegs);
@@ -329,6 +332,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	{
 		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
+		writeDebugStreamLine("trueMoveForwardsInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = -1*127 * SIGN(wheeldegs);
 		motor[backRight] = 127 * SIGN(wheeldegs);
 		motor[frontLeft] = 127 * SIGN(wheeldegs);
