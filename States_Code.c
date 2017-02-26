@@ -84,7 +84,7 @@ static int MyAutonomous = -1;
 /*-----------------------------------------------------------------------------*/
 
 // max number of auton choices
-#define MAX_CHOICE  6
+#define MAX_CHOICE  7
 
 void
 LcdAutonomousSet( int value, bool select = false )
