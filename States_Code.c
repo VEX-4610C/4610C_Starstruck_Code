@@ -228,15 +228,17 @@ void liftChange(int degs) // Lift Up using encoders
 	stopTask(liftWatchdog);
 	return;
 }
+int WAIT_FOR_STOP = 250;
 void gyroturn(int deg) // Turn Function using Gyroscope
 {
 	int gyroticks = deg*9; // Ticks of Gyro
 	int P_Factor = 2.5; // P Factor for P Turn
 	SensorValue[gyro] = 0; // Reset Gyro Value
-	int old_pos = 0; 
+	int old_pos = 0;
+	clearTimer(T3);
 	while(abs(SensorValue[gyro]) < abs(gyroticks)) // Wait for Gyro to Finish
 	{
-		if(abs(SensorValue[gyro] - old_pos) < 20)
+		if(abs(SensorValue[gyro] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
 		motor[backLeft] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
@@ -263,9 +265,10 @@ void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 	nMotorEncoder[backLeft] = 0;
 	writeDebugStreamLine("%d", wheeldegs);
 	int old_pos = 0; 
+	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
 		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
@@ -291,9 +294,10 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
 	int old_pos = 0; 
+	clearTimer(T3);
 	while( (abs(nMotorEncoder[backLeft]) < abs(wheeldegs))) // Wait for Finish
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
 		motor[backLeft] = 127 * SIGN(wheeldegs);
 		motor[backRight] = -1 * 127 * SIGN(wheeldegs);
@@ -320,9 +324,10 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
 	int old_pos = 0; 
+	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20)
+		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
 			break;
 		motor[backLeft] = -1*127 * SIGN(wheeldegs);
 		motor[backRight] = 127 * SIGN(wheeldegs);
@@ -703,8 +708,8 @@ void pre_auton()
 {
 	bStopTasksBetweenModes = true;
 	bDisplayCompetitionStatusOnLcd = false;
-	LcdAutonomousSelection();
-	startTask(LCDControl);
+	if(OVERRIDE_AUTO == 0)
+		LcdAutonomousSelection();
 }
 task autonomous()
 {
@@ -748,8 +753,6 @@ task autonomous()
 		startTask(liftPosition);
 		flingShot();
 	}
-	if(0)
-		clawopentime(0);
 }
 task usercontrol()
 {
