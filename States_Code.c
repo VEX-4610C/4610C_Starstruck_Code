@@ -500,28 +500,7 @@ void auto_drive_backwards()
 }
 void preloadSkills()
 {
-		clawclosetime(50);
-	startTask(liftPosition);
-	motor[catapultLeftA]  = -35;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -35;
-	motor[catapultRightB] = -35;
-	moveStrafeInches(18);
-	// Row of 3 Near Wall
-	clawclosetime(835);
-	moveStrafeInches(-24);
-	trueMoveForwardsInches(-46);
-	clawclose();
-	clawhold();
-	moveForwardsInches(-40);
-	lifttouch();
-	moveStrafeInches(30);
-
-	gyroturn(110);
-	moveForwardsInches(-24);
-	flingShot();
-	
-	moveForwardsInches(-10);
+	back_star_auto(0);
 	
 	/*
 	trueMoveForwardsInches(-6);
