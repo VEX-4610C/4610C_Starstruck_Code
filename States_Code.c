@@ -176,7 +176,7 @@ LcdAutonomousSelection()
 	}
 }
 int lift_completed = 0;
-	float esti_change = 1000;
+float esti_change = 1000;
 task liftWatchdog
 {
 	wait1Msec(1000);
@@ -498,15 +498,47 @@ void auto_drive_backwards()
 	clawclosetime(250);
 	moveForwardsInches(-70);
 }
+void back_star_auto(int turn)
+{
+	motor[catapultLeftA]  = -35;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
+	moveStrafeInches(18 * (turn == 0 ? 1 : -1));
+	// Row of 3 Near Wall
+	clawclosetime(845);
+	moveStrafeInches(-26 * (turn == 0 ? 1 : -1));
+	//moveStrafeInches(3 * (turn == 0 ? 1 : -1));
+	wait1Msec(1800);
+	trueMoveForwardsInches(-56);
+	clawclose();
+	clawhold();
+	if(turn == 1)
+	{
+		moveStrafeInches(-6);
+	}
+	startTask(liftPosition);
+	moveForwardsInches(-52);
+	lifttouch();
+	moveStrafeInches(30 * (turn == 0 ? 1 : -1));
+	int turn_deg = 90 * (turn == 0 ? 1 : -1);
+	gyroturn(turn_deg);
+	moveForwardsInches((turn == 0 ? -10 : -25));
+	writeDebugStreamLine("here1");
+	flingShot();
+	moveForwardsInches(-10);
+	writeDebugStreamLine("here2");
+	liftDown();
+}
 void preloadSkills()
 {
 	back_star_auto(0);
-	
+
 	/*
 	trueMoveForwardsInches(-6);
 	moveForwardsInches(-6);
 	*/
-	
+
 	getPreload();
 	flingShot();
 	getPreload();
@@ -554,38 +586,7 @@ void star_true(int dir)
 
 	flingShot();
 }
-void back_star_auto(int turn)
-{
-	motor[catapultLeftA]  = -35;
-	//motor[catapultRightA] = 15;
-	motor[catapultLeftB]  = -35;
-	motor[catapultRightB] = -35;
-	moveStrafeInches(18 * (turn == 0 ? 1 : -1));
-	// Row of 3 Near Wall
-	clawclosetime(845);
-	moveStrafeInches(-26 * (turn == 0 ? 1 : -1));
-	//moveStrafeInches(3 * (turn == 0 ? 1 : -1));
-	wait1Msec(1800);
-	trueMoveForwardsInches(-56);
-	clawclose();
-	clawhold();
-	if(turn == 1)
-	{
-		moveStrafeInches(-6);
-	}
-	startTask(liftPosition);
-	moveForwardsInches(-52);
-	lifttouch();
-	moveStrafeInches(30 * (turn == 0 ? 1 : -1));
-	int turn_deg = 90 * (turn == 0 ? 1 : -1);
-	gyroturn(turn_deg);
-	moveForwardsInches((turn == 0 ? -10 : -25));
-	writeDebugStreamLine("here1");
-	flingShot();
-	moveForwardsInches(-10);
-	writeDebugStreamLine("here2");
-	liftDown();
-}
+
 float changeRange(float x, float in_min, float in_max, float out_min, float out_max) // Change Range Function, for squared Drive
 {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
