@@ -238,8 +238,6 @@ void gyroturn(int deg) // Turn Function using Gyroscope
 	clearTimer(T3);
 	while(abs(SensorValue[gyro]) < abs(gyroticks)) // Wait for Gyro to Finish
 	{
-		if(abs(SensorValue[gyro] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
-			break;
 		writeDebugStreamLine("Gyroturn %d", abs(SensorValue[gyro] - old_pos));
 		motor[backLeft] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
 		motor[backRight] =  SIGN(gyroticks)*((abs(gyroticks)-abs(SensorValue[gyro]))*P_Factor);
@@ -269,8 +267,6 @@ void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
-			break;
 		writeDebugStreamLine("moveStrafeInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
 		motor[backRight] = (30+ ((abs(nMotorEncoder[backLeft])-abs(wheeldegs))*P_Factor)*-1)*SIGN(wheeldegs);
@@ -299,8 +295,6 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	clearTimer(T3);
 	while( (abs(nMotorEncoder[backLeft]) < abs(wheeldegs))) // Wait for Finish
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
-			break;
 		writeDebugStreamLine("moveForwardsInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = 127 * SIGN(wheeldegs);
 		motor[backRight] = -1 * 127 * SIGN(wheeldegs);
@@ -330,8 +324,6 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
-		if(abs(nMotorEncoder[backLeft] - old_pos) < 20 && Time1[T3] > WAIT_FOR_STOP)
-			break;
 		writeDebugStreamLine("trueMoveForwardsInches %d", abs(nMotorEncoder[backLeft] - old_pos));
 		motor[backLeft] = -1*127 * SIGN(wheeldegs);
 		motor[backRight] = 127 * SIGN(wheeldegs);
@@ -465,11 +457,11 @@ void auto_true_cube(int right)
 	motor[catapultLeftB]  = -35;
 	motor[catapultRightB] = -35;
 	clawclose();
-	trueMoveForwardsInches(-40);
-	moveForwardsInches(-10);
+	trueMoveForwardsInches(-44);
+	moveForwardsInches(-14);
 	int turn = right == 1 ? -90 : 80;
 	gyroturn(turn);
-	trueMoveForwardsInches(-50);
+	trueMoveForwardsInches(-40);
 	clawclose();
 	clawhold();
 	motor[catapultLeftA]  = 127;
@@ -487,6 +479,7 @@ void auto_true_cube(int right)
 	gyroturn(turn);
 	moveForwardsInches(-30);
 	flingShot();
+	moveForwardsInches(-10);
 }
 void lifttouch()
 {
@@ -494,7 +487,7 @@ void lifttouch()
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = 127;
 	motor[catapultRightB] = 127;
-	wait1Msec(350);
+	wait1Msec(650);
 	motor[catapultLeftA]  = -15;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
@@ -528,9 +521,7 @@ void preloadSkills()
 	moveForwardsInches(-24);
 	flingShot();
 	
-	gyroturn(15);
-	gyroturn(-30);
-	gyroturn(15);
+	moveForwardsInches(-10);
 	
 	/*
 	trueMoveForwardsInches(-6);
@@ -576,33 +567,43 @@ void star_true(int dir)
 	clawclose();
 	clawclose();
 	clawhold();
+	if(dir == 1)
+	{
+		moveStrafeInches(-8);
+	}
 	moveForwardsInches(-50);
+
 	flingShot();
 }
 void back_star_auto(int turn)
 {
-	LIFT_FLING = 1750;
 	motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -35;
 	motor[catapultRightB] = -35;
 	moveStrafeInches(18 * (turn == 0 ? 1 : -1));
 	// Row of 3 Near Wall
-	clawclosetime(875);
-	moveStrafeInches(-22 * (turn == 0 ? 1 : -1));
-	wait1Msec(3000);
-	trueMoveForwardsInches(-52);
+	clawclosetime(845);
+	moveStrafeInches(-26 * (turn == 0 ? 1 : -1));
+	//moveStrafeInches(3 * (turn == 0 ? 1 : -1));
+	wait1Msec(1800);
+	trueMoveForwardsInches(-56);
 	clawclose();
 	clawhold();
+	if(turn == 1)
+	{
+		moveStrafeInches(-6);
+	}
 	startTask(liftPosition);
-	moveForwardsInches(-35);
+	moveForwardsInches(-52);
 	lifttouch();
 	moveStrafeInches(30 * (turn == 0 ? 1 : -1));
 	int turn_deg = 90 * (turn == 0 ? 1 : -1);
 	gyroturn(turn_deg);
-	moveForwardsInches(-35);
+	moveForwardsInches((turn == 0 ? -10 : -25));
 	writeDebugStreamLine("here1");
 	flingShot();
+	moveForwardsInches(-10);
 	writeDebugStreamLine("here2");
 	liftDown();
 }
@@ -706,7 +707,7 @@ void usercontrolfunction()
 7 - Programming Skills
 8 - Fling Shot Tester
 */
-int OVERRIDE_AUTO = 1; // To Override: Change to 1
+int OVERRIDE_AUTO = 0; // To Override: Change to 1
 int OVERRIDE_AUTO_SELECTION = 7; // Auto Selection (Above)
 void pre_auton()
 {
