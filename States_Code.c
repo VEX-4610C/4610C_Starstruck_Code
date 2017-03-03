@@ -2,8 +2,8 @@
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    liftPot,        sensorPotentiometer)
-#pragma config(Sensor, in2,    gyro,           sensorGyro)
 #pragma config(Sensor, in3,    clawPot,        sensorPotentiometer)
+#pragma config(Sensor, in4,    gyro,           sensorGyro)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           clawB,         tmotorVex393_HBridge, openLoop)
@@ -200,7 +200,8 @@ task liftWatchdog
 int true_goal;
 void liftChange(int degs) // Lift Up using encoders
 {
-	true_goal = SensorValue[liftPot] + (degs*-1);
+	//true_goal = SensorValue[liftPot] + (degs*-1);
+	true_goal = degs;
 	lift_completed = 0;
 	startTask(liftWatchdog);
 	if(true_goal < SensorValue[liftPot]) // Lift UP
@@ -263,7 +264,7 @@ void moveStrafeInches(int inches) // Strafe, Pos=Left Neg=Right
 	float P_Factor = 0.75;
 	nMotorEncoder[backLeft] = 0;
 	writeDebugStreamLine("%d", wheeldegs);
-	int old_pos = 0; 
+	int old_pos = 0;
 	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs))
 	{
@@ -291,7 +292,7 @@ void moveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
-	int old_pos = 0; 
+	int old_pos = 0;
 	clearTimer(T3);
 	while( (abs(nMotorEncoder[backLeft]) < abs(wheeldegs))) // Wait for Finish
 	{
@@ -320,7 +321,7 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 	int wheeldegs = (inches/12.566)*360; // Calculating Wheel Degrees
 	nMotorEncoder[backLeft] = 0; // Reset Encoder
 	writeDebugStreamLine("wheeldegs %d %d", wheeldegs, SIGN(wheeldegs));
-	int old_pos = 0; 
+	int old_pos = 0;
 	clearTimer(T3);
 	while(abs(nMotorEncoder[backLeft]) < abs(wheeldegs)) // Wait for Finish
 	{
@@ -344,9 +345,9 @@ void trueMoveForwardsInches(int inches) // Y Axis, Pos=Forward Neg=Backwards
 
 }
 int LIFT_TOP = 1000;
-int LIFT_FLOOR = 3230;
+int LIFT_FLOOR = 3000;
 // int LIFT_PERIMETER = 3000;
-int LIFT_FLING = 2000;
+int LIFT_FLING = 1600;
 
 int liftgoal = LIFT_FLOOR;
 int liftdone = 1;
@@ -364,7 +365,8 @@ task liftPosition // Task to Control Lift Position simultaneously with other sub
 			writeDebugStreamLine("Lift Goal: %d", liftgoal);
 			writeDebugStreamLine("Lift Old Position: %d", oldliftposition);
 			liftdone = 0;
-			liftChange(oldliftposition - liftgoal); // If Goal is lower than current, lower lift.
+			//liftChange(oldliftposition - liftgoal); // If Goal is lower than current, lower lift.
+			liftChange(liftgoal);
 			writeDebugStreamLine("lift returned");
 			oldliftposition = liftgoal;
 			liftdone = 1;
@@ -419,7 +421,6 @@ void getPreload()
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -15;
 	motor[catapultRightB] = -15;
-	moveStrafeInches(4);
 	trueMoveForwardsInches(-45);
 	clawclose();
 	motor[clawA] = 70;
@@ -477,6 +478,7 @@ void auto_true_cube(int right)
 
 	moveForwardsInches(-40);
 	gyroturn(turn);
+	turn = right == 1 ? -110 : 80;
 	moveForwardsInches(-30);
 	flingShot();
 	moveForwardsInches(-10);
@@ -532,25 +534,53 @@ void back_star_auto(int turn)
 }
 void preloadSkills()
 {
-	back_star_auto(0);
+	motor[catapultLeftA]  = -35;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -35;
+	motor[catapultRightB] = -35;
+	moveStrafeInches(18);
+	// Row of 3 Near Wall
+	clawclosetime(845);
+	moveStrafeInches(-26);
+	//moveStrafeInches(3 * (turn == 0 ? 1 : -1));
+	trueMoveForwardsInches(-56);
+	clawclose();
+	clawhold();
+	startTask(liftPosition);
+	moveForwardsInches(-48);
+	lifttouch();
+	moveStrafeInches(30);
+	int turn_deg = 80 ;
+	gyroturn(turn_deg);
+	moveForwardsInches(-20);
+	writeDebugStreamLine("here1");
+	wait1Msec(150);
+	flingShot();
+	moveForwardsInches(-5);
+	writeDebugStreamLine("here2");
+	liftDown();
 
 	/*
 	trueMoveForwardsInches(-6);
 	moveForwardsInches(-6);
 	*/
-
+	moveStrafeInches(-4);
 	getPreload();
 	flingShot();
 	getPreload();
+	moveStrafeInches(-4);
 	flingShot();
 	getPreload();
+	moveStrafeInches(-4);
 	flingShot();
-
+	
 	liftDown();
-	trueMoveForwardsInches(-12);
-	moveStrafeInches(52);
+	trueMoveForwardsInches(-22);
+	gyroturn(-90);
+	moveForwardsInches(52);
 	clawclose();
 	clawhold();
+	gyroturn(90);
 	moveForwardsInches(-14);
 	LIFT_FLING += 80;
 	flingShot();
@@ -558,7 +588,21 @@ void preloadSkills()
 	liftDown();
 	trueMoveForwardsInches(-12);
 	moveStrafeInches(50);
-	getPreload();
+	
+		liftgoal = LIFT_FLOOR;
+	wait1Msec(150);
+	while(!liftdone){}
+	motor[catapultLeftA]  = -15;
+	//motor[catapultRightA] = 15;
+	motor[catapultLeftB]  = -15;
+	motor[catapultRightB] = -15;
+	trueMoveForwardsInches(-25);
+	clawclose();
+	motor[clawA] = 70;
+	motor[clawB] = 70;
+
+	moveForwardsInches(-58);
+	
 	flingShot();
 
 }
