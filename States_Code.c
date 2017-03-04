@@ -534,7 +534,7 @@ void back_star_auto(int turn)
 }
 void preloadSkills()
 {
-	motor[catapultLeftA]  = -35;
+	/* motor[catapultLeftA]  = -35;
 	//motor[catapultRightA] = 15;
 	motor[catapultLeftB]  = -35;
 	motor[catapultRightB] = -35;
@@ -563,15 +563,21 @@ void preloadSkills()
 	/*
 	trueMoveForwardsInches(-6);
 	moveForwardsInches(-6);
-	*/
 	moveStrafeInches(-4);
+	getPreload();
+	flingShot(); */
+	moveForwardsInches(-20);
+	clawclose();
+	clawclose();
+	trueMoveForwardsInches(-10);
+	clawclose();
+	clawhold();
+	moveForwardsInches(-50);
+	flingShot();
+	
 	getPreload();
 	flingShot();
 	getPreload();
-	moveStrafeInches(-4);
-	flingShot();
-	getPreload();
-	moveStrafeInches(-4);
 	flingShot();
 	
 	liftDown();
